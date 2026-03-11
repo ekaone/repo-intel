@@ -3,8 +3,7 @@ use std::path::Path;
 
 #[test]
 fn test_scan_nextjs_basic() {
-    let fixture = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/nextjs-basic");
+    let fixture = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/nextjs-basic");
     let cfg = Config::default();
     let result = scan(&fixture, &cfg).expect("scan should succeed");
 
@@ -20,8 +19,7 @@ fn test_scan_nextjs_basic() {
 
 #[test]
 fn test_scan_rust_axum() {
-    let fixture = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/rust-axum");
+    let fixture = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/rust-axum");
     let cfg = Config::default();
     let result = scan(&fixture, &cfg).expect("scan should succeed");
 
@@ -33,8 +31,7 @@ fn test_scan_rust_axum() {
 
 #[test]
 fn test_scan_empty_repo() {
-    let fixture = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/empty-repo");
+    let fixture = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/empty-repo");
     let cfg = Config::default();
     let result = scan(&fixture, &cfg).expect("scan should succeed on empty repo");
 
@@ -46,8 +43,7 @@ fn test_scan_empty_repo() {
 
 #[test]
 fn test_scan_monorepo() {
-    let fixture = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/monorepo");
+    let fixture = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/monorepo");
     let cfg = Config::default();
     let result = scan(&fixture, &cfg).expect("scan should succeed");
 

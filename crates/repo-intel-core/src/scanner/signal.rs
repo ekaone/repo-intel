@@ -14,16 +14,16 @@ pub fn collect_signals(root: &Path) -> Result<(Vec<SignalFile>, Option<String>)>
 
     // ── Root-level signal files ───────────────────────────────────────────────
     let root_signals: &[(&str, SignalKind)] = &[
-        ("package.json",          SignalKind::PackageJson),
-        ("tsconfig.json",         SignalKind::TsConfig),
-        ("Cargo.toml",            SignalKind::CargoToml),
-        ("pyproject.toml",        SignalKind::PyProject),
-        ("requirements.txt",      SignalKind::RequirementsTxt),
-        ("go.mod",                SignalKind::GoMod),
-        ("Dockerfile",            SignalKind::Dockerfile),
-        ("docker-compose.yml",    SignalKind::DockerCompose),
-        ("docker-compose.yaml",   SignalKind::DockerCompose),
-        (".repo-intel.toml",      SignalKind::RepoIntelConfig),
+        ("package.json", SignalKind::PackageJson),
+        ("tsconfig.json", SignalKind::TsConfig),
+        ("Cargo.toml", SignalKind::CargoToml),
+        ("pyproject.toml", SignalKind::PyProject),
+        ("requirements.txt", SignalKind::RequirementsTxt),
+        ("go.mod", SignalKind::GoMod),
+        ("Dockerfile", SignalKind::Dockerfile),
+        ("docker-compose.yml", SignalKind::DockerCompose),
+        ("docker-compose.yaml", SignalKind::DockerCompose),
+        (".repo-intel.toml", SignalKind::RepoIntelConfig),
     ];
 
     for (filename, kind) in root_signals {
@@ -169,14 +169,20 @@ mod tests {
 
     #[test]
     fn detects_package_json() {
-        let dir = setup(&[("package.json", r#"{"name":"my-app","dependencies":{"react":"^18"}}"#)]);
+        let dir = setup(&[(
+            "package.json",
+            r#"{"name":"my-app","dependencies":{"react":"^18"}}"#,
+        )]);
         let (signals, _) = collect_signals(dir.path()).unwrap();
         assert!(signals.iter().any(|s| s.kind == SignalKind::PackageJson));
     }
 
     #[test]
     fn detects_cargo_toml() {
-        let dir = setup(&[("Cargo.toml", "[package]\nname = \"my-crate\"\nversion = \"0.1.0\"")]);
+        let dir = setup(&[(
+            "Cargo.toml",
+            "[package]\nname = \"my-crate\"\nversion = \"0.1.0\"",
+        )]);
         let (signals, _) = collect_signals(dir.path()).unwrap();
         assert!(signals.iter().any(|s| s.kind == SignalKind::CargoToml));
     }

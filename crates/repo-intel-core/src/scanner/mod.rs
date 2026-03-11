@@ -83,8 +83,14 @@ mod tests {
     #[test]
     fn scan_nextjs_fixture() {
         let dir = setup(&[
-            ("package.json", r#"{"name":"my-app","dependencies":{"next":"14","react":"18","tailwindcss":"3"}}"#),
-            ("tsconfig.json", r#"{"compilerOptions":{"target":"ES2020"}}"#),
+            (
+                "package.json",
+                r#"{"name":"my-app","dependencies":{"next":"14","react":"18","tailwindcss":"3"}}"#,
+            ),
+            (
+                "tsconfig.json",
+                r#"{"compilerOptions":{"target":"ES2020"}}"#,
+            ),
             ("src/components/Button.tsx", ""),
             ("src/hooks/useAuth.ts", ""),
             ("src/services/api.ts", ""),
@@ -97,8 +103,14 @@ mod tests {
         let result = scan(dir.path(), &default_cfg()).unwrap();
 
         // Signal files detected
-        assert!(result.signal_files.iter().any(|s| s.kind == crate::types::SignalKind::PackageJson));
-        assert!(result.signal_files.iter().any(|s| s.kind == crate::types::SignalKind::TsConfig));
+        assert!(result
+            .signal_files
+            .iter()
+            .any(|s| s.kind == crate::types::SignalKind::PackageJson));
+        assert!(result
+            .signal_files
+            .iter()
+            .any(|s| s.kind == crate::types::SignalKind::TsConfig));
 
         // Folders detected
         assert!(result.folder_map.contains_key("components"));
@@ -115,10 +127,7 @@ mod tests {
 
     #[test]
     fn scan_respects_exclude_config() {
-        let dir = setup(&[
-            ("src/index.ts", ""),
-            ("legacy/old.ts", ""),
-        ]);
+        let dir = setup(&[("src/index.ts", ""), ("legacy/old.ts", "")]);
 
         let mut cfg = default_cfg();
         cfg.project.exclude = vec!["legacy".into()];

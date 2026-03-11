@@ -3,8 +3,7 @@ use std::path::Path;
 
 #[test]
 fn test_detect_nextjs() {
-    let fixture = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/nextjs-basic");
+    let fixture = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/nextjs-basic");
     let cfg = Config::default();
     let scan_result = scan(&fixture, &cfg).expect("scan should succeed");
     let stack = detect(&scan_result);
@@ -23,8 +22,7 @@ fn test_detect_nextjs() {
 
 #[test]
 fn test_detect_rust_axum() {
-    let fixture = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/rust-axum");
+    let fixture = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/rust-axum");
     let cfg = Config::default();
     let scan_result = scan(&fixture, &cfg).expect("scan should succeed");
     let stack = detect(&scan_result);
@@ -38,8 +36,7 @@ fn test_detect_rust_axum() {
 
 #[test]
 fn test_detect_empty_repo_no_panic() {
-    let fixture = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/empty-repo");
+    let fixture = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/empty-repo");
     let cfg = Config::default();
     let scan_result = scan(&fixture, &cfg).expect("scan should succeed");
     let stack = detect(&scan_result);

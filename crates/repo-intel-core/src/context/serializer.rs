@@ -15,7 +15,6 @@ pub fn to_json_compact(ctx: &RepoContext) -> Result<String, Error> {
 /// Write context JSON to a file path.
 pub fn write_to_file(ctx: &RepoContext, path: &std::path::Path) -> Result<(), Error> {
     let json = to_json(ctx)?;
-    std::fs::write(path, json)
-        .map_err(|e| Error::ScanIo(path.display().to_string(), e))?;
+    std::fs::write(path, json).map_err(|e| Error::ScanIo(path.display().to_string(), e))?;
     Ok(())
 }

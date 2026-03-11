@@ -78,7 +78,12 @@ fn main() {
 fn run(cli: Cli) -> repo_intel_core::Result<()> {
     match cli.command {
         // ── scan ──────────────────────────────────────────────────────────────
-        Commands::Scan { root, pretty, output, .. } => {
+        Commands::Scan {
+            root,
+            pretty,
+            output,
+            ..
+        } => {
             let cfg = Config::load(&root)?;
             let ctx = run_pipeline(&root, &cfg)?;
 
@@ -102,7 +107,13 @@ fn run(cli: Cli) -> repo_intel_core::Result<()> {
         }
 
         // ── generate ──────────────────────────────────────────────────────────
-        Commands::Generate { root, no_ai, dry_run, debug, provider } => {
+        Commands::Generate {
+            root,
+            no_ai,
+            dry_run,
+            debug,
+            provider,
+        } => {
             let mut cfg = Config::load(&root)?;
 
             // Apply CLI provider override

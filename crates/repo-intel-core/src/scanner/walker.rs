@@ -88,8 +88,7 @@ pub fn walk(root: &Path, depth_cap: usize) -> (FolderMap, Vec<String>) {
 /// Returns `true` if `entry` is a directory that should be skipped entirely.
 /// Using `filter_entry` means walkdir won't descend into skipped dirs at all.
 fn is_skip_dir(entry: &walkdir::DirEntry) -> bool {
-    entry.file_type().is_dir()
-        && SKIP_DIRS.contains(&entry.file_name().to_str().unwrap_or(""))
+    entry.file_type().is_dir() && SKIP_DIRS.contains(&entry.file_name().to_str().unwrap_or(""))
 }
 
 /// Extract meaningful pattern tokens from a file path.
@@ -150,7 +149,7 @@ fn collect_file_pattern(path: &Path, patterns: &mut Vec<String>) {
         "next.config.ts",
         "tailwind.config.ts",
         "tailwind.config.js",
-        "prisma",        // matches prisma/schema.prisma parent dir
+        "prisma", // matches prisma/schema.prisma parent dir
         "schema.prisma",
         "go.sum",
     ];
@@ -181,10 +180,7 @@ mod tests {
     #[test]
     fn skips_node_modules() {
         let dir = TempDir::new().unwrap();
-        make_tree(dir.path(), &[
-            "src/index.ts",
-            "node_modules/react/index.js",
-        ]);
+        make_tree(dir.path(), &["src/index.ts", "node_modules/react/index.js"]);
 
         let (folder_map, patterns) = walk(dir.path(), DEPTH_CAP);
 
@@ -208,7 +204,10 @@ mod tests {
     #[test]
     fn folder_map_has_children() {
         let dir = TempDir::new().unwrap();
-        make_tree(dir.path(), &["components/Button.tsx", "components/Input.tsx"]);
+        make_tree(
+            dir.path(),
+            &["components/Button.tsx", "components/Input.tsx"],
+        );
 
         let (folder_map, _) = walk(dir.path(), DEPTH_CAP);
 

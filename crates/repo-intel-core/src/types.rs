@@ -1,6 +1,6 @@
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
-use serde::{Deserialize, Serialize};
 
 // ── Type aliases ──────────────────────────────────────────────────────────────
 
@@ -62,10 +62,9 @@ pub struct StackResult {
 impl StackResult {
     /// Convenience: check if any skill name contains `needle` with confidence ≥ threshold.
     pub fn has_skill(&self, needle: &str, min_confidence: f32) -> bool {
-        self.skills
-            .iter()
-            .any(|s| s.name.to_lowercase().contains(&needle.to_lowercase())
-                && s.confidence >= min_confidence)
+        self.skills.iter().any(|s| {
+            s.name.to_lowercase().contains(&needle.to_lowercase()) && s.confidence >= min_confidence
+        })
     }
 }
 
@@ -104,7 +103,7 @@ pub enum ArchStyle {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RepoContext {
     pub version: String,
-    pub scanned_at: String,         // ISO 8601
+    pub scanned_at: String, // ISO 8601
     pub root: PathBuf,
     pub project: ProjectMeta,
     pub stack: StackResult,

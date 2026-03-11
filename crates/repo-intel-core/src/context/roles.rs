@@ -35,7 +35,8 @@ pub fn derive_roles(stack: &StackResult) -> Vec<AgentRole> {
         roles.push(AgentRole {
             id: "backend".into(),
             title: "Backend Engineer".into(),
-            description: "API design, request handling, middleware, and service layer logic.".into(),
+            description: "API design, request handling, middleware, and service layer logic."
+                .into(),
         });
     }
 

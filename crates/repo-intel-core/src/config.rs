@@ -1,6 +1,6 @@
-use std::path::Path;
-use serde::{Deserialize, Serialize};
 use crate::error::{RepoIntelError, Result};
+use serde::{Deserialize, Serialize};
+use std::path::Path;
 
 // ── Top-level config ──────────────────────────────────────────────────────────
 
@@ -59,25 +59,27 @@ impl AiProvider {
     pub fn from_str(s: &str) -> Result<Self> {
         match s.to_lowercase().as_str() {
             "anthropic" => Ok(Self::Anthropic),
-            "openai"    => Ok(Self::OpenAi),
-            "ollama"    => Ok(Self::Ollama),
-            other       => Err(RepoIntelError::InvalidProvider { value: other.to_string() }),
+            "openai" => Ok(Self::OpenAi),
+            "ollama" => Ok(Self::Ollama),
+            other => Err(RepoIntelError::InvalidProvider {
+                value: other.to_string(),
+            }),
         }
     }
 
     pub fn default_model(&self) -> &'static str {
         match self {
             Self::Anthropic => "claude-sonnet-4-20250514",
-            Self::OpenAi    => "gpt-4o",
-            Self::Ollama    => "llama3.2",
+            Self::OpenAi => "gpt-4o",
+            Self::Ollama => "llama3.2",
         }
     }
 
     pub fn default_api_key_env(&self) -> &'static str {
         match self {
             Self::Anthropic => "ANTHROPIC_API_KEY",
-            Self::OpenAi    => "OPENAI_API_KEY",
-            Self::Ollama    => "",   // Ollama is local, no key required
+            Self::OpenAi => "OPENAI_API_KEY",
+            Self::Ollama => "", // Ollama is local, no key required
         }
     }
 }

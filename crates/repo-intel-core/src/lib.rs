@@ -37,8 +37,8 @@ pub mod types;
 pub use config::Config;
 pub use error::{RepoIntelError, Result};
 pub use types::{
-    AgentDoc, ArchMeta, ArchStyle, FolderMap, ProjectMeta, RepoContext, ScanResult,
-    SignalFile, SignalKind, Skill, SkillSource, StackResult,
+    AgentDoc, ArchMeta, ArchStyle, FolderMap, ProjectMeta, RepoContext, ScanResult, SignalFile,
+    SignalKind, Skill, SkillSource, StackResult,
 };
 
 // ── Top-level convenience function ───────────────────────────────────────────

@@ -36,10 +36,7 @@ fn read_readme_excerpt(root: &Path) -> Option<String> {
     None
 }
 
-fn detect_ci(
-    root: &Path,
-    folder_map: &std::collections::HashMap<String, Vec<String>>,
-) -> bool {
+fn detect_ci(root: &Path, folder_map: &std::collections::HashMap<String, Vec<String>>) -> bool {
     // GitHub Actions
     if root.join(".github").join("workflows").exists() {
         return true;
@@ -54,8 +51,6 @@ fn detect_ci(
     }
     // Check folder map for any CI indicators
     folder_map.keys().any(|k| {
-        k.contains(".github/workflows")
-            || k.contains(".circleci")
-            || k.contains(".gitlab")
+        k.contains(".github/workflows") || k.contains(".circleci") || k.contains(".gitlab")
     })
 }
