@@ -32,18 +32,14 @@ fn pattern_skill_rules(pattern: &str) -> Vec<Skill> {
             skill("Testing", 0.88, pattern),
             skill("TDD Practice", 0.75, pattern),
         ],
-        "*.test.js" | "*.spec.js" => vec![
-            skill("Testing", 0.85, pattern),
-        ],
+        "*.test.js" | "*.spec.js" => vec![skill("Testing", 0.85, pattern)],
         "*.e2e.ts" | "*.e2e-spec.ts" => vec![
             skill("E2E Testing", 0.88, pattern),
             skill("Testing", 0.85, pattern),
         ],
 
         // ── Service / architecture patterns ───────────────────────────────────
-        "*.service.ts" => vec![
-            skill("Service Layer Architecture", 0.85, pattern),
-        ],
+        "*.service.ts" => vec![skill("Service Layer Architecture", 0.85, pattern)],
         "*.controller.ts" => vec![
             skill("Controller Pattern (NestJS)", 0.88, pattern),
             skill("NestJS", 0.80, pattern),
@@ -52,20 +48,12 @@ fn pattern_skill_rules(pattern: &str) -> Vec<Skill> {
             skill("Module Architecture (NestJS)", 0.85, pattern),
             skill("NestJS", 0.80, pattern),
         ],
-        "*.middleware.ts" => vec![
-            skill("Middleware Pattern", 0.80, pattern),
-        ],
-        "*.guard.ts" | "*.interceptor.ts" => vec![
-            skill("NestJS", 0.82, pattern),
-        ],
+        "*.middleware.ts" => vec![skill("Middleware Pattern", 0.80, pattern)],
+        "*.guard.ts" | "*.interceptor.ts" => vec![skill("NestJS", 0.82, pattern)],
 
         // ── Data modelling ────────────────────────────────────────────────────
-        "*.schema.ts" => vec![
-            skill("Data Modelling", 0.82, pattern),
-        ],
-        "*.model.ts" => vec![
-            skill("Data Modelling", 0.80, pattern),
-        ],
+        "*.schema.ts" => vec![skill("Data Modelling", 0.82, pattern)],
+        "*.model.ts" => vec![skill("Data Modelling", 0.80, pattern)],
         "schema.prisma" => vec![
             skill("Database ORM (Prisma)", 0.95, pattern),
             skill("Database", 0.95, pattern),
@@ -96,16 +84,11 @@ fn pattern_skill_rules(pattern: &str) -> Vec<Skill> {
         ],
 
         // ── Build / config files ──────────────────────────────────────────────
-        "vite.config.ts" => vec![
-            skill("Vite", 0.97, pattern),
-        ],
-        "next.config.js" | "next.config.ts" => vec![
-            skill("Next.js", 0.97, pattern),
-            skill("SSR", 0.90, pattern),
-        ],
-        "tailwind.config.ts" | "tailwind.config.js" => vec![
-            skill("Tailwind CSS", 0.97, pattern),
-        ],
+        "vite.config.ts" => vec![skill("Vite", 0.97, pattern)],
+        "next.config.js" | "next.config.ts" => {
+            vec![skill("Next.js", 0.97, pattern), skill("SSR", 0.90, pattern)]
+        }
+        "tailwind.config.ts" | "tailwind.config.js" => vec![skill("Tailwind CSS", 0.97, pattern)],
         "jest.config.ts" | "jest.config.js" => vec![
             skill("Testing (Jest)", 0.95, pattern),
             skill("Testing", 0.95, pattern),
@@ -116,27 +99,13 @@ fn pattern_skill_rules(pattern: &str) -> Vec<Skill> {
         ],
 
         // ── Language indicators ───────────────────────────────────────────────
-        ".ts" | ".tsx" => vec![
-            skill("TypeScript", 0.92, pattern),
-        ],
-        ".rs" => vec![
-            skill("Rust", 0.99, pattern),
-        ],
-        ".py" => vec![
-            skill("Python", 0.97, pattern),
-        ],
-        ".go" => vec![
-            skill("Go", 0.97, pattern),
-        ],
-        ".java" => vec![
-            skill("Java", 0.97, pattern),
-        ],
-        ".cs" => vec![
-            skill("C#", 0.97, pattern),
-        ],
-        ".rb" => vec![
-            skill("Ruby", 0.97, pattern),
-        ],
+        ".ts" | ".tsx" => vec![skill("TypeScript", 0.92, pattern)],
+        ".rs" => vec![skill("Rust", 0.99, pattern)],
+        ".py" => vec![skill("Python", 0.97, pattern)],
+        ".go" => vec![skill("Go", 0.97, pattern)],
+        ".java" => vec![skill("Java", 0.97, pattern)],
+        ".cs" => vec![skill("C#", 0.97, pattern)],
+        ".rb" => vec![skill("Ruby", 0.97, pattern)],
 
         // ── CI ────────────────────────────────────────────────────────────────
         // (GitHub workflow YAML is detected in signal.rs; this catches others)

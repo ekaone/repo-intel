@@ -1,5 +1,5 @@
+use crate::types::{SignalKind, Skill, SkillSource};
 use serde_json::Value;
-use crate::types::{Skill, SignalKind, SkillSource};
 
 /// Layer 1 — dependency fingerprinting.
 ///
@@ -305,10 +305,7 @@ fn cargo_skill_rules(dep: &str, src: &SkillSource) -> Vec<Skill> {
         "rocket" => vec![skill("Rust Web Server (Rocket)", 0.97)],
 
         // ── Database ──────────────────────────────────────────────────────────
-        "sqlx" => vec![
-            skill("Rust Database (SQLx)", 0.97),
-            skill("Database", 0.97),
-        ],
+        "sqlx" => vec![skill("Rust Database (SQLx)", 0.97), skill("Database", 0.97)],
         "diesel" => vec![
             skill("Rust Database (Diesel)", 0.97),
             skill("Database", 0.97),
@@ -368,9 +365,11 @@ mod tests {
 
     #[test]
     fn detects_react_and_nextjs() {
-        let signal = pkg_signal(r#"{
+        let signal = pkg_signal(
+            r#"{
             "dependencies": { "next": "14", "react": "18", "react-dom": "18" }
-        }"#);
+        }"#,
+        );
         let skills = detect_from_deps(&[signal]);
         assert!(has_skill(&skills, "Next.js"));
         assert!(has_skill(&skills, "React"));
@@ -379,9 +378,11 @@ mod tests {
 
     #[test]
     fn detects_tailwind_and_vitest() {
-        let signal = pkg_signal(r#"{
+        let signal = pkg_signal(
+            r#"{
             "devDependencies": { "tailwindcss": "3", "vitest": "1" }
-        }"#);
+        }"#,
+        );
         let skills = detect_from_deps(&[signal]);
         assert!(has_skill(&skills, "Tailwind CSS"));
         assert!(has_skill(&skills, "Vitest"));
@@ -389,9 +390,11 @@ mod tests {
 
     #[test]
     fn detects_prisma_as_database() {
-        let signal = pkg_signal(r#"{
+        let signal = pkg_signal(
+            r#"{
             "dependencies": { "prisma": "5", "@prisma/client": "5" }
-        }"#);
+        }"#,
+        );
         let skills = detect_from_deps(&[signal]);
         assert!(has_skill(&skills, "Prisma"));
         assert!(has_skill(&skills, "Database"));
@@ -399,7 +402,8 @@ mod tests {
 
     #[test]
     fn detects_rust_axum_from_cargo() {
-        let signal = cargo_signal(r#"
+        let signal = cargo_signal(
+            r#"
             [package]
             name = "my-api"
             version = "0.1.0"
@@ -408,7 +412,8 @@ mod tests {
             axum = "0.7"
             sqlx = { version = "0.7", features = ["postgres"] }
             tokio = { version = "1", features = ["full"] }
-        "#);
+        "#,
+        );
         let skills = detect_from_deps(&[signal]);
         assert!(has_skill(&skills, "Rust"));
         assert!(has_skill(&skills, "Axum"));
