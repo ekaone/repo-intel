@@ -1,22 +1,67 @@
+use std::path::PathBuf;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
-pub enum Error {
-    #[error("failed to read config file '{0}': {1}")]
-    ConfigRead(String, #[source] std::io::Error),
+pub enum RepoIntelError {
+    // ── I/O ──────────────────────────────────────────────────────────────────
+    #[error("Failed to read file '{path}': {source}")]
+    FileRead {
+        path: PathBuf,
+        #[source]
+        source: std::io::Error,
+    },
 
-    #[error("failed to parse config file '{0}': {1}")]
-    ConfigParse(String, String),
+    #[error("Failed to write file '{path}': {source}")]
+    FileWrite {
+        path: PathBuf,
+        #[source]
+        source: std::io::Error,
+    },
 
-    #[error("failed to scan directory '{0}': {1}")]
-    ScanIo(String, #[source] std::io::Error),
+    #[error("Failed to walk directory '{path}': {source}")]
+    DirWalk {
+        path: PathBuf,
+        #[source]
+        source: walkdir::Error,
+    },
 
-    #[error("failed to read signal file '{0}': {1}")]
-    SignalRead(String, #[source] std::io::Error),
+    // ── Parsing ───────────────────────────────────────────────────────────────
+    #[error("Failed to parse package.json at '{path}': {reason}")]
+    PackageJsonParse { path: PathBuf, reason: String },
 
-    #[error("failed to serialize context to JSON: {0}")]
-    Serialization(#[from] serde_json::Error),
+    #[error("Failed to parse Cargo.toml at '{path}': {reason}")]
+    CargoTomlParse { path: PathBuf, reason: String },
 
-    #[error("walkdir error: {0}")]
-    WalkDir(#[from] walkdir::Error),
+    #[error("Failed to parse .repo-intel.toml: {reason}")]
+    ConfigParse { reason: String },
+
+    #[error("Failed to serialize context to JSON: {source}")]
+    JsonSerialize {
+        #[source]
+        source: serde_json::Error,
+    },
+
+    // ── Scanner ───────────────────────────────────────────────────────────────
+    #[error("Scan root does not exist: '{path}'")]
+    RootNotFound { path: PathBuf },
+
+    #[error("Scan root is not a directory: '{path}'")]
+    RootNotDirectory { path: PathBuf },
+
+    // ── Config ────────────────────────────────────────────────────────────────
+    #[error("Invalid AI provider '{value}'. Expected: anthropic | openai | ollama")]
+    InvalidProvider { value: String },
+
+    #[error("API key env var '{var}' is not set")]
+    MissingApiKey { var: String },
+
+    // ── Pipeline ──────────────────────────────────────────────────────────────
+    #[error("No agent roles could be inferred from the scanned repository")]
+    NoRolesDetected,
+
+    #[error("Context build failed: {reason}")]
+    ContextBuild { reason: String },
 }
+
+/// Convenience alias — most functions return this.
+pub type Result<T> = std::result::Result<T, RepoIntelError>;

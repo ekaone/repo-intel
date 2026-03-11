@@ -1,85 +1,139 @@
-use anyhow::Result;
-use clap::{Parser, Subcommand};
 use std::path::PathBuf;
+use std::process;
 
-#[derive(Parser)]
+use clap::{Parser, Subcommand};
+use repo_intel_core::{config::Config, context::serializer, run_pipeline};
+
+// ── CLI definition ────────────────────────────────────────────────────────────
+
+#[derive(Debug, Parser)]
 #[command(
-    name = "repo-intel",
-    version,
-    about = "Scan your repository and generate AI agent context files",
-    long_about = None
+    name    = "repo-intel",
+    version = env!("CARGO_PKG_VERSION"),
+    about   = "Scan a repository and generate AI agent documentation",
+    long_about = None,
 )]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
 }
 
-#[derive(Subcommand)]
+#[derive(Debug, Subcommand)]
 enum Commands {
-    /// Scan the repository and print context.json to stdout
+    /// Scan a repository and output context.json (consumed by the JS AI layer)
     Scan {
-        /// Root directory to scan (defaults to current directory)
+        /// Repository root to scan (defaults to current directory)
         #[arg(short, long, default_value = ".")]
         root: PathBuf,
 
-        /// Path to .repo-intel.toml config file
+        /// Output compact JSON to stdout (default — used by JS wrapper)
+        #[arg(long)]
+        json: bool,
+
+        /// Pretty-print JSON for human inspection
+        #[arg(long)]
+        pretty: bool,
+
+        /// Write output to a file instead of stdout
         #[arg(short, long)]
-        config: Option<PathBuf>,
+        output: Option<PathBuf>,
     },
 
-    /// Run the full pipeline: scan → detect → build context → write agent docs
+    /// Run the full pipeline: scan → detect → build context → print JSON
+    /// The JS wrapper spawns this command and reads stdout as context.json.
     Generate {
-        /// Root directory to scan (defaults to current directory)
+        /// Repository root to scan (defaults to current directory)
         #[arg(short, long, default_value = ".")]
         root: PathBuf,
 
-        /// Path to .repo-intel.toml config file
-        #[arg(short, long)]
-        config: Option<PathBuf>,
-
-        /// Output directory for generated agent docs
-        #[arg(short, long, default_value = "agents")]
-        output: PathBuf,
-
-        /// Skip AI generation and use static fallback templates
+        /// Skip the AI layer — JS wrapper will use static fallback generation
         #[arg(long)]
         no_ai: bool,
-    },
 
-    /// Print version information
-    Version,
+        /// Print what would be generated without writing any files
+        #[arg(long)]
+        dry_run: bool,
+
+        /// Emit verbose debug info to stderr
+        #[arg(long)]
+        debug: bool,
+
+        /// AI provider override: anthropic | openai | ollama
+        #[arg(long)]
+        provider: Option<String>,
+    },
 }
 
-fn main() -> Result<()> {
+// ── Entry point ───────────────────────────────────────────────────────────────
+
+fn main() {
     let cli = Cli::parse();
 
+    if let Err(e) = run(cli) {
+        eprintln!("error: {e}");
+        process::exit(1);
+    }
+}
+
+fn run(cli: Cli) -> repo_intel_core::Result<()> {
     match cli.command {
-        Commands::Scan { root, config } => {
-            let cfg = repo_intel_core::config::load(config.as_deref())?;
-            let scan_result = repo_intel_core::scanner::scan(&root, &cfg)?;
-            let stack_result = repo_intel_core::detector::detect(&scan_result);
-            let context = repo_intel_core::context::build(&stack_result);
-            let json = repo_intel_core::context::serializer::to_json(&context)?;
-            println!("{json}");
+        // ── scan ──────────────────────────────────────────────────────────────
+        Commands::Scan { root, pretty, output, .. } => {
+            let cfg = Config::load(&root)?;
+            let ctx = run_pipeline(&root, &cfg)?;
+
+            let json = if pretty {
+                serde_json::to_string_pretty(&ctx)
+            } else {
+                serde_json::to_string(&ctx)
+            }
+            .map_err(|e| repo_intel_core::RepoIntelError::JsonSerialize { source: e })?;
+
+            match output {
+                Some(path) => {
+                    serializer::write_to_file(&json, &path)?;
+                    eprintln!("✓ context written to {}", path.display());
+                }
+                None => {
+                    // Compact JSON to stdout — JS wrapper reads this
+                    println!("{json}");
+                }
+            }
         }
 
-        Commands::Generate {
-            root,
-            config,
-            output: _,
-            no_ai: _,
-        } => {
-            let cfg = repo_intel_core::config::load(config.as_deref())?;
-            let scan_result = repo_intel_core::scanner::scan(&root, &cfg)?;
-            let stack_result = repo_intel_core::detector::detect(&scan_result);
-            let context = repo_intel_core::context::build(&stack_result);
-            let json = repo_intel_core::context::serializer::to_json(&context)?;
-            // The JS layer consumes this JSON from stdout to drive AI generation
-            println!("{json}");
-        }
+        // ── generate ──────────────────────────────────────────────────────────
+        Commands::Generate { root, no_ai, dry_run, debug, provider } => {
+            let mut cfg = Config::load(&root)?;
 
-        Commands::Version => {
-            println!("repo-intel {}", env!("CARGO_PKG_VERSION"));
+            // Apply CLI provider override
+            if let Some(p) = provider {
+                cfg.ai.provider = repo_intel_core::config::AiProvider::from_str(&p)?;
+            }
+
+            if debug {
+                eprintln!("[debug] root       = {}", root.display());
+                eprintln!("[debug] provider   = {:?}", cfg.ai.provider);
+                eprintln!("[debug] model      = {}", cfg.effective_model());
+                eprintln!("[debug] no_ai      = {no_ai}");
+                eprintln!("[debug] dry_run    = {dry_run}");
+            }
+
+            let ctx = run_pipeline(&root, &cfg)?;
+
+            if debug {
+                eprintln!("[debug] roles detected: {:?}", ctx.agent_roles);
+                eprintln!("[debug] skills: {}", ctx.stack.skills.len());
+            }
+
+            // Serialize context.json to stdout — JS wrapper takes it from here
+            let json = serde_json::to_string(&ctx)
+                .map_err(|e| repo_intel_core::RepoIntelError::JsonSerialize { source: e })?;
+
+            println!("{json}");
+
+            if dry_run {
+                eprintln!("(dry-run) JS layer would now call the AI provider");
+            }
         }
     }
 

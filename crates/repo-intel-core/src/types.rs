@@ -1,71 +1,145 @@
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
+use serde::{Deserialize, Serialize};
 
-/// Raw output of the scanner step.
+// ── Type aliases ──────────────────────────────────────────────────────────────
+
+/// Maps a folder name to the list of files directly inside it.
+pub type FolderMap = HashMap<String, Vec<String>>;
+
+// ── Scanner output ────────────────────────────────────────────────────────────
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScanResult {
-    /// Absolute path to the scanned root.
     pub root: PathBuf,
-    /// Map of relative dir path → list of filenames found inside.
-    pub folder_map: HashMap<String, Vec<String>>,
-    /// Signal files detected: relative path → file contents (if readable).
-    pub signal_files: HashMap<String, String>,
-    /// All unique file extensions found in the repo.
-    pub extensions: Vec<String>,
+    pub signal_files: Vec<SignalFile>,
+    /// Folder name → list of direct child filenames
+    pub folder_map: FolderMap,
+    /// Collected file extensions + notable name patterns (e.g. "*.test.ts")
+    pub file_patterns: Vec<String>,
+    pub readme_excerpt: Option<String>,
 }
 
-/// A detected skill / capability.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Skill {
-    /// Short name, e.g. "nextjs", "react", "axum"
-    pub name: String,
-    /// Human-readable category, e.g. "framework", "language", "tooling"
-    pub category: String,
-    /// Detection confidence between 0.0 and 1.0
-    pub confidence: f32,
-    /// Which signals contributed to this detection
-    pub signals: Vec<String>,
+pub struct SignalFile {
+    pub kind: SignalKind,
+    pub path: PathBuf,
+    /// Raw file contents — callers are responsible for parsing
+    pub content: String,
 }
 
-/// Output of the detector step.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SignalKind {
+    PackageJson,
+    TsConfig,
+    CargoToml,
+    PyProject,
+    RequirementsTxt,
+    GoMod,
+    ReadmeMd,
+    Dockerfile,
+    DockerCompose,
+    GithubWorkflow,
+    RepoIntelConfig,
+}
+
+// ── Detector output ───────────────────────────────────────────────────────────
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StackResult {
-    /// Primary language(s) detected
-    pub languages: Vec<Skill>,
-    /// Frameworks / libraries detected
-    pub frameworks: Vec<Skill>,
-    /// Tooling detected (bundlers, linters, CI, etc.)
-    pub tooling: Vec<Skill>,
-    /// Inferred architecture patterns
-    pub architecture: Vec<String>,
+    pub language: String,
+    pub framework: Option<String>,
+    pub styling: Option<String>,
+    pub state_management: Option<String>,
+    pub testing: Option<String>,
+    pub database: Option<String>,
+    pub runtime: Option<String>,
+    pub skills: Vec<Skill>,
+    pub architecture_style: Option<ArchStyle>,
 }
 
-/// Role that an AI agent should be generated for.
+impl StackResult {
+    /// Convenience: check if any skill name contains `needle` with confidence ≥ threshold.
+    pub fn has_skill(&self, needle: &str, min_confidence: f32) -> bool {
+        self.skills
+            .iter()
+            .any(|s| s.name.to_lowercase().contains(&needle.to_lowercase())
+                && s.confidence >= min_confidence)
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AgentRole {
-    pub id: String,
-    pub title: String,
-    pub description: String,
+pub struct Skill {
+    pub name: String,
+    /// 0.0 – 1.0
+    pub confidence: f32,
+    pub source: SkillSource,
 }
 
-/// Final enriched context — serialised to context.json / stdout.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case", tag = "type", content = "value")]
+pub enum SkillSource {
+    PackageJson,
+    CargoToml,
+    FolderName(String),
+    FilePattern(String),
+    ReadmeSignal,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ArchStyle {
+    /// `src/modules/feature/…`
+    FeatureBased,
+    /// `src/components`, `src/services`, `src/hooks`
+    LayerBased,
+    /// Minimal / flat structure
+    Flat,
+}
+
+// ── Context output (final Rust output → consumed by JS) ──────────────────────
+
+/// The contract between Rust and JS. Shape must match `context.json`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RepoContext {
-    /// Repo root name (last path segment)
-    pub name: String,
-    /// Detected tech stack
+    pub version: String,
+    pub scanned_at: String,         // ISO 8601
+    pub root: PathBuf,
+    pub project: ProjectMeta,
     pub stack: StackResult,
-    /// Agent roles to generate docs for
-    pub agent_roles: Vec<AgentRole>,
-    /// README excerpt (first 500 chars), if present
+    pub architecture: ArchMeta,
+    pub agent_roles: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProjectMeta {
+    pub name: String,
+    pub description: Option<String>,
     pub readme_excerpt: Option<String>,
-    /// Whether a .git directory was found
-    pub has_git: bool,
-    /// Whether a Dockerfile / docker-compose was found
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ArchMeta {
+    pub style: Option<ArchStyle>,
+    /// Top-level folder names present in the repo
+    pub folders: Vec<String>,
+    pub has_monorepo: bool,
     pub has_docker: bool,
-    /// Whether a CI config was found (.github/workflows, .gitlab-ci.yml, etc.)
     pub has_ci: bool,
-    /// Schema version for forward-compat
-    pub schema_version: String,
+    pub has_git: bool,
+}
+
+// ── Agent doc (produced by JS, typed here for shared reference) ───────────────
+
+/// Mirrors the TypeScript `AgentDoc` type. Not serialized by Rust directly,
+/// but defined here so the shape is the single source of truth.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentDoc {
+    pub role: String,
+    pub filename: String,
+    pub content: String,
+    pub generated_at: String,
+    pub generated_by: String,
+    pub confidence: f32,
 }
