@@ -1,5 +1,11 @@
 {
+  "name": "repo-intel",
   "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
   "scripts": {
     "build:rust":  "cargo build --release",
     "build:js":    "pnpm --filter repo-intel build",
@@ -10,5 +16,8 @@
     "lint":        "biome check .",
     "bench":       "cargo bench",
     "dev":         "pnpm --filter repo-intel dev"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.6"
   }
 }

@@ -4,7 +4,7 @@ resolver = "2"
 
 [workspace.package]
 version = "0.1.0"
-edition = "2026"
+edition = "2021"
 authors = ["Eka Prasetia"]
 license = "MIT"
 repository = "https://github.com/ekaone/repo-intel"
@@ -31,6 +31,7 @@ walkdir = "2"
 
 # Testing
 criterion = { version = "0.5", features = ["html_reports"] }
+tempfile = "3"
 
 [profile.release]
 opt-level = 3

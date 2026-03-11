@@ -2,7 +2,19 @@
   "name": "repo-intel",
   "version": "0.1.0",
   "description": "Scan your repository and generate AI agent context files — powered by a Rust core",
-  "keywords": ["ai", "agent", "context", "repository", "scanner", "llm"],
+  "keywords": [
+    "ai",
+    "agent",
+    "context",
+    "repository",
+    "scanner",
+    "llm"
+  ],
+  "author": {
+    "name": "Eka Prasetia",
+    "email": "ekaone3033@gmail.com",
+    "url": "https://prasetia.me"
+  },
   "homepage": "https://github.com/ekaone/repo-intel",
   "repository": {
     "type": "git",
@@ -12,18 +24,21 @@
   "type": "module",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
       "types": "./dist/index.d.ts"
     }
   },
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "bin": {
-    "repo-intel": "./dist/cli.js"
+    "repo-intel": "./dist/cli.mjs"
   },
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
@@ -31,14 +46,16 @@
     "clean": "rimraf dist"
   },
   "dependencies": {
+    "@ai-sdk/openai": "3.0.41",
     "@anthropic-ai/sdk": "^0.39.0",
-    "openai": "^4.77.0",
-    "handlebars": "^4.7.8"
+    "commander": "^14.0.3",
+    "handlebars": "^4.7.8",
+    "openai": "^4.77.0"
   },
   "optionalDependencies": {
-    "repo-intel-linux-x64": "workspace:*",
     "repo-intel-darwin-arm64": "workspace:*",
     "repo-intel-darwin-x64": "workspace:*",
+    "repo-intel-linux-x64": "workspace:*",
     "repo-intel-win32-x64": "workspace:*"
   },
   "devDependencies": {
@@ -47,8 +64,8 @@
     "@vitest/ui": "^4.0.18",
     "rimraf": "^6.1.3",
     "tsup": "^8.5.1",
-    "vitest": "^4.0.18",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   },
   "engines": {
     "node": ">=18.0.0"
