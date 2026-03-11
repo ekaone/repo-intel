@@ -1,0 +1,8 @@
+{
+  "name": "@monorepo/api",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "fastify": "^4.0.0"
+  }
+}

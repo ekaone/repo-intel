@@ -1,0 +1,2 @@
+# This binary is added at release time by the CI workflow and is gitignored.
+# See .github/workflows/release.yml and scripts/copy-binaries.sh

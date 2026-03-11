@@ -1,0 +1,11 @@
+packages:
+  - "packages/*"
+
+# Planned packages:
+# packages/repo-intel         ← CLI (v0.1.0)
+# packages/repo-intel-sdk     ← Programmatic SDK (v0.2.x)
+# packages/repo-intel-native  ← napi-rs SDK (v0.3.0)
+# packages/repo-intel-linux-x64
+# packages/repo-intel-darwin-arm64
+# packages/repo-intel-darwin-x64
+# packages/repo-intel-win32-x64

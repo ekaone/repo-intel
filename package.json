@@ -1,0 +1,14 @@
+{
+  "private": true,
+  "scripts": {
+    "build:rust":  "cargo build --release",
+    "build:js":    "pnpm --filter repo-intel build",
+    "build":       "pnpm build:rust && pnpm build:js",
+    "test:rust":   "cargo test",
+    "test:js":     "pnpm --filter repo-intel test",
+    "test":        "pnpm test:rust && pnpm test:js",
+    "lint":        "biome check .",
+    "bench":       "cargo bench",
+    "dev":         "pnpm --filter repo-intel dev"
+  }
+}
