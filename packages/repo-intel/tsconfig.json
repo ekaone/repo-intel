@@ -40,5 +40,5 @@
     "baseUrl": "./src"
   },
   "include": ["src/**/*", "demo.js"],
-  "exclude": ["dist", "node_modules", "**/*.test.ts", "**/*.spec.ts"]
+  "exclude": ["dist", "node_modules", "**/*.spec.ts"]
 }
