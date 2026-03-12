@@ -5,7 +5,7 @@ pub mod serializer;
 use std::path::Path;
 
 use crate::config::Config;
-use crate::error::{RepoIntelError, Result};
+use crate::error::Result;
 use crate::types::{RepoContext, ScanResult, StackResult};
 
 /// Build the final `RepoContext` from scan + detection outputs.
@@ -206,9 +206,6 @@ impl RepoContext {
 
     /// Return secondary skills (0.50 ≤ confidence < 0.90).
     pub fn secondary_skills(&self) -> impl Iterator<Item = &crate::types::Skill> {
-        self.stack
-            .skills
-            .iter()
-            .filter(|s| s.confidence >= 0.50 && s.confidence < 0.90)
+        self.stack.skills.iter().filter(|s| s.confidence >= 0.50 && s.confidence < 0.90)
     }
 }

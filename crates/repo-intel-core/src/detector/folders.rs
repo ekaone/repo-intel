@@ -9,8 +9,6 @@ pub fn detect_from_folders(folder_map: &FolderMap) -> (Vec<Skill>, Option<ArchSt
     let mut skills = Vec::new();
     let folders: Vec<&str> = folder_map.keys().map(|s| s.as_str()).collect();
 
-    let src = SkillSource::FolderName;
-
     let skill = |name: &str, confidence: f32, folder: &str| Skill {
         name: name.to_string(),
         confidence,
@@ -112,10 +110,7 @@ fn infer_arch_style(folders: &[&str]) -> Option<ArchStyle> {
 
     // Layer-based: classic separation of concerns
     let layer_indicators = ["components", "services", "hooks", "utils", "lib", "pages"];
-    let layer_count = layer_indicators
-        .iter()
-        .filter(|&&l| folders.contains(&l))
-        .count();
+    let layer_count = layer_indicators.iter().filter(|&&l| folders.contains(&l)).count();
     if layer_count >= 2 {
         return Some(ArchStyle::LayerBased);
     }
@@ -135,9 +130,7 @@ fn has_any(folders: &[&str], targets: &[&str]) -> bool {
 }
 
 fn first_match<'a>(folders: &[&'a str], targets: &[&str]) -> Option<&'a str> {
-    targets
-        .iter()
-        .find_map(|t| folders.iter().find(|&&f| f == *t).copied())
+    targets.iter().find_map(|t| folders.iter().find(|&&f| f == *t).copied())
 }
 
 fn src(folder: &str) -> SkillSource {
@@ -152,10 +145,7 @@ mod tests {
     use std::collections::HashMap;
 
     fn folder_map(names: &[&str]) -> FolderMap {
-        names
-            .iter()
-            .map(|&n| (n.to_string(), vec![]))
-            .collect::<HashMap<_, _>>()
+        names.iter().map(|&n| (n.to_string(), vec![])).collect::<HashMap<_, _>>()
     }
 
     fn has_skill(skills: &[Skill], name: &str) -> bool {

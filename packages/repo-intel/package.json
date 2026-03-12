@@ -33,7 +33,7 @@
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "bin": {
-    "repo-intel": "./dist/cli.mjs"
+    "repo-intel": "./dist/cli.cjs"
   },
   "files": [
     "dist",

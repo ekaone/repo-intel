@@ -5,11 +5,11 @@ pub mod patterns;
 use std::collections::HashMap;
 
 use crate::error::Result;
-use crate::types::{ArchStyle, ScanResult, Skill, StackResult};
+use crate::types::{Skill, ScanResult, StackResult};
 
 /// Confidence thresholds (from PLAN.md)
-const INCLUDE_THRESHOLD: f32 = 0.50; // below this → excluded from output
-const PRIMARY_THRESHOLD: f32 = 0.90; // at or above → "primary skill"
+const INCLUDE_THRESHOLD: f32 = 0.50;   // below this → excluded from output
+const PRIMARY_THRESHOLD: f32 = 0.90;   // at or above → "primary skill"
 
 /// Run all 3 detection layers and merge into a `StackResult`.
 ///
@@ -36,20 +36,16 @@ pub fn detect(scan: &ScanResult) -> Result<StackResult> {
     skills.retain(|s| s.confidence >= INCLUDE_THRESHOLD);
 
     // Sort by confidence descending so highest-confidence skills come first
-    skills.sort_by(|a, b| {
-        b.confidence
-            .partial_cmp(&a.confidence)
-            .unwrap_or(std::cmp::Ordering::Equal)
-    });
+    skills.sort_by(|a, b| b.confidence.partial_cmp(&a.confidence).unwrap_or(std::cmp::Ordering::Equal));
 
     // ── Extract top-level stack fields ────────────────────────────────────────
-    let language = infer_language(&skills, &internal);
-    let framework = infer_framework(&skills);
-    let styling = infer_styling(&skills);
+    let language   = infer_language(&skills, &internal);
+    let framework  = infer_framework(&skills);
+    let styling    = infer_styling(&skills);
     let state_mgmt = infer_state_management(&skills);
-    let testing = infer_testing(&skills);
-    let database = infer_database(&skills);
-    let runtime = infer_runtime(&skills, &language);
+    let testing    = infer_testing(&skills);
+    let database   = infer_database(&skills);
+    let runtime    = infer_runtime(&skills, &language);
 
     Ok(StackResult {
         language,
@@ -100,10 +96,7 @@ fn infer_language(skills: &[Skill], internal: &[Skill]) -> String {
     ];
 
     for (skill_needle, lang) in &candidates {
-        if skills
-            .iter()
-            .any(|s| s.name.contains(skill_needle) && s.confidence >= PRIMARY_THRESHOLD)
-        {
+        if skills.iter().any(|s| s.name.contains(skill_needle) && s.confidence >= PRIMARY_THRESHOLD) {
             return lang.to_string();
         }
     }
@@ -139,10 +132,7 @@ fn infer_framework(skills: &[Skill]) -> Option<String> {
     ];
 
     for needle in &framework_priority {
-        if let Some(s) = skills
-            .iter()
-            .find(|s| s.name.contains(needle) && s.confidence >= INCLUDE_THRESHOLD)
-        {
+        if let Some(s) = skills.iter().find(|s| s.name.contains(needle) && s.confidence >= INCLUDE_THRESHOLD) {
             // Return clean names
             return Some(clean_framework_name(&s.name));
         }
@@ -152,12 +142,7 @@ fn infer_framework(skills: &[Skill]) -> Option<String> {
 }
 
 fn infer_styling(skills: &[Skill]) -> Option<String> {
-    let styling_options = [
-        "Tailwind CSS",
-        "Styled Components",
-        "Emotion CSS",
-        "Sass/SCSS",
-    ];
+    let styling_options = ["Tailwind CSS", "Styled Components", "Emotion CSS", "Sass/SCSS"];
 
     for needle in &styling_options {
         if skills.iter().any(|s| s.name.contains(needle)) {
@@ -169,13 +154,9 @@ fn infer_styling(skills: &[Skill]) -> Option<String> {
 }
 
 fn infer_state_management(skills: &[Skill]) -> Option<String> {
-    if let Some(s) = skills
-        .iter()
-        .find(|s| s.name.starts_with("State Management ("))
-    {
+    if let Some(s) = skills.iter().find(|s| s.name.starts_with("State Management (")) {
         // Extract "(Zustand)" → "Zustand"
-        let inner = s
-            .name
+        let inner = s.name
             .trim_start_matches("State Management (")
             .trim_end_matches(')');
         return Some(inner.to_string());
@@ -185,20 +166,13 @@ fn infer_state_management(skills: &[Skill]) -> Option<String> {
 
 fn infer_testing(skills: &[Skill]) -> Option<String> {
     let testing_options = [
-        "Testing (Vitest)",
-        "Testing (Jest)",
-        "E2E Testing (Playwright)",
-        "E2E Testing (Cypress)",
+        "Testing (Vitest)", "Testing (Jest)",
+        "E2E Testing (Playwright)", "E2E Testing (Cypress)",
     ];
 
     for needle in &testing_options {
         if skills.iter().any(|s| s.name.contains(needle)) {
-            return Some(
-                needle
-                    .trim_start_matches("Testing (")
-                    .trim_end_matches(')')
-                    .to_string(),
-            );
+            return Some(needle.trim_start_matches("Testing (").trim_end_matches(')').to_string());
         }
     }
 
@@ -211,26 +185,16 @@ fn infer_testing(skills: &[Skill]) -> Option<String> {
 
 fn infer_database(skills: &[Skill]) -> Option<String> {
     let db_options = [
-        "Database ORM (Prisma)",
-        "Database ORM (Drizzle)",
-        "Database ORM (TypeORM)",
-        "MongoDB (Mongoose)",
-        "Rust Database (SQLx)",
-        "Rust Database (Diesel)",
-        "PostgreSQL",
-        "MySQL",
-        "SQLite",
+        "Database ORM (Prisma)", "Database ORM (Drizzle)", "Database ORM (TypeORM)",
+        "MongoDB (Mongoose)", "Rust Database (SQLx)", "Rust Database (Diesel)",
+        "PostgreSQL", "MySQL", "SQLite",
     ];
 
     for needle in &db_options {
         if skills.iter().any(|s| s.name.contains(needle)) {
-            return Some(
-                needle
-                    .trim_start_matches("Database ORM (")
-                    .trim_start_matches("Rust Database (")
-                    .trim_end_matches(')')
-                    .to_string(),
-            );
+            return Some(needle.trim_start_matches("Database ORM (")
+                               .trim_start_matches("Rust Database (")
+                               .trim_end_matches(')').to_string());
         }
     }
 
@@ -239,8 +203,8 @@ fn infer_database(skills: &[Skill]) -> Option<String> {
 
 fn infer_runtime(skills: &[Skill], language: &str) -> Option<String> {
     match language {
-        "Rust" => Some("Rust (native)".to_string()),
-        "Go" => Some("Go runtime".to_string()),
+        "Rust"   => Some("Rust (native)".to_string()),
+        "Go"     => Some("Go runtime".to_string()),
         "Python" => Some("CPython".to_string()),
         _ => {
             // Node.js vs Bun vs Deno
@@ -257,10 +221,10 @@ fn clean_framework_name(raw: &str) -> String {
     // "Rust Web Server (Axum)" → "Axum"
     if raw.contains('(') {
         raw.split('(')
-            .nth(1)
-            .unwrap_or(raw)
-            .trim_end_matches(')')
-            .to_string()
+           .nth(1)
+           .unwrap_or(raw)
+           .trim_end_matches(')')
+           .to_string()
     } else {
         raw.to_string()
     }
@@ -311,10 +275,7 @@ mod tests {
         assert_eq!(stack.styling.as_deref(), Some("Tailwind CSS"));
         assert!(stack.database.is_some());
         assert!(stack.testing.is_some());
-        assert!(stack
-            .skills
-            .iter()
-            .all(|s| s.confidence >= INCLUDE_THRESHOLD));
+        assert!(stack.skills.iter().all(|s| s.confidence >= INCLUDE_THRESHOLD));
     }
 
     #[test]
@@ -351,7 +312,11 @@ mod tests {
 
     #[test]
     fn skills_sorted_by_confidence_descending() {
-        let scan = make_scan(r#"{"dependencies":{"next":"14","react":"18"}}"#, &[], &[]);
+        let scan = make_scan(
+            r#"{"dependencies":{"next":"14","react":"18"}}"#,
+            &[],
+            &[],
+        );
 
         let stack = detect(&scan).unwrap();
         let confidences: Vec<f32> = stack.skills.iter().map(|s| s.confidence).collect();
@@ -364,9 +329,6 @@ mod tests {
     fn no_skills_below_threshold_in_output() {
         let scan = make_scan(r#"{"dependencies":{}}"#, &[], &[]);
         let stack = detect(&scan).unwrap();
-        assert!(stack
-            .skills
-            .iter()
-            .all(|s| s.confidence >= INCLUDE_THRESHOLD));
+        assert!(stack.skills.iter().all(|s| s.confidence >= INCLUDE_THRESHOLD));
     }
 }
