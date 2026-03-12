@@ -61,7 +61,7 @@
     "repo-intel-win32-x64": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^25.3.3",
+    "@types/node": "^25.4.0",
     "@vitest/coverage-v8": "^4.0.18",
     "@vitest/ui": "^4.0.18",
     "rimraf": "^6.1.3",

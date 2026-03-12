@@ -17,7 +17,7 @@
 
     /* Language & Target */
     "target": "ES2022",
-    "lib": ["ES2019"],
+    "lib": ["ES2022", "DOM"],
 
     /* Strictness */
     "strict": true,
@@ -39,6 +39,6 @@
     /* Paths */
     "baseUrl": "./src"
   },
-  "include": ["src/**/*", "demo.js"],
+  "include": ["src/**/*", "tests/**/*"],
   "exclude": ["dist", "node_modules", "**/*.spec.ts"]
 }
