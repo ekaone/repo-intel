@@ -206,6 +206,9 @@ impl RepoContext {
 
     /// Return secondary skills (0.50 ≤ confidence < 0.90).
     pub fn secondary_skills(&self) -> impl Iterator<Item = &crate::types::Skill> {
-        self.stack.skills.iter().filter(|s| s.confidence >= 0.50 && s.confidence < 0.90)
+        self.stack
+            .skills
+            .iter()
+            .filter(|s| s.confidence >= 0.50 && s.confidence < 0.90)
     }
 }

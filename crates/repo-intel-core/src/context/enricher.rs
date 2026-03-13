@@ -95,9 +95,9 @@ fn build_arch_meta(
     skills: &[Skill],
     arch_style: Option<ArchStyle>,
 ) -> ArchMeta {
-    let has_git      = detect_git(root);
-    let has_docker   = detect_docker(root, signal_files, skills);
-    let has_ci       = detect_ci(root, signal_files, skills);
+    let has_git = detect_git(root);
+    let has_docker = detect_docker(root, signal_files, skills);
+    let has_ci = detect_ci(root, signal_files, skills);
     let has_monorepo = detect_monorepo(root, signal_files, folder_map, skills);
 
     // Collect meaningful top-level folder names for the prompt
@@ -132,9 +132,10 @@ fn detect_docker(root: &Path, signal_files: &[SignalFile], skills: &[Skill]) -> 
         return true;
     }
 
-    if signal_files.iter().any(|s| {
-        matches!(s.kind, SignalKind::Dockerfile | SignalKind::DockerCompose)
-    }) {
+    if signal_files
+        .iter()
+        .any(|s| matches!(s.kind, SignalKind::Dockerfile | SignalKind::DockerCompose))
+    {
         return true;
     }
 
@@ -148,7 +149,10 @@ fn detect_docker(root: &Path, signal_files: &[SignalFile], skills: &[Skill]) -> 
 /// - `Jenkinsfile` exists, OR
 /// - a `GithubWorkflow` signal was collected
 fn detect_ci(root: &Path, signal_files: &[SignalFile], skills: &[Skill]) -> bool {
-    if signal_files.iter().any(|s| matches!(s.kind, SignalKind::GithubWorkflow)) {
+    if signal_files
+        .iter()
+        .any(|s| matches!(s.kind, SignalKind::GithubWorkflow))
+    {
         return true;
     }
 
@@ -195,7 +199,11 @@ fn detect_monorepo(
     // packages/ or apps/ with child package.json signals
     let workspace_dirs = ["packages", "apps"];
     let has_workspace_dir = workspace_dirs.iter().any(|d| folder_map.contains_key(*d));
-    let has_child_pkg = signal_files.iter().filter(|s| s.kind == SignalKind::PackageJson).count() > 1;
+    let has_child_pkg = signal_files
+        .iter()
+        .filter(|s| s.kind == SignalKind::PackageJson)
+        .count()
+        > 1;
 
     if has_workspace_dir && has_child_pkg {
         return true;
@@ -209,17 +217,28 @@ fn detect_monorepo(
 /// Filters out noisy or generated folder names to keep the prompt clean.
 fn collect_top_folders(folder_map: &FolderMap) -> Vec<String> {
     const SKIP: &[&str] = &[
-        "node_modules", ".git", "dist", "build", "target",
-        ".next", ".nuxt", "coverage", ".turbo", ".cache",
-        "__pycache__", ".venv", "vendor", ".svelte-kit",
-        ".github", ".cargo", ".angular",
+        "node_modules",
+        ".git",
+        "dist",
+        "build",
+        "target",
+        ".next",
+        ".nuxt",
+        "coverage",
+        ".turbo",
+        ".cache",
+        "__pycache__",
+        ".venv",
+        "vendor",
+        ".svelte-kit",
+        ".github",
+        ".cargo",
+        ".angular",
     ];
 
     let mut folders: Vec<String> = folder_map
         .keys()
-        .filter(|name| {
-            !SKIP.contains(&name.as_str()) && !name.starts_with('.')
-        })
+        .filter(|name| !SKIP.contains(&name.as_str()) && !name.starts_with('.'))
         .cloned()
         .collect();
 
@@ -236,9 +255,15 @@ mod tests {
     use std::fs;
     use tempfile::TempDir;
 
-    fn no_skills() -> Vec<Skill> { vec![] }
-    fn no_signals() -> Vec<SignalFile> { vec![] }
-    fn empty_folders() -> FolderMap { HashMap::new() }
+    fn no_skills() -> Vec<Skill> {
+        vec![]
+    }
+    fn no_signals() -> Vec<SignalFile> {
+        vec![]
+    }
+    fn empty_folders() -> FolderMap {
+        HashMap::new()
+    }
 
     fn setup(files: &[&str]) -> TempDir {
         let dir = TempDir::new().unwrap();
@@ -291,7 +316,12 @@ mod tests {
     #[test]
     fn detects_monorepo_from_pnpm_workspace() {
         let dir = setup(&["pnpm-workspace.yaml"]);
-        assert!(detect_monorepo(dir.path(), &no_signals(), &empty_folders(), &no_skills()));
+        assert!(detect_monorepo(
+            dir.path(),
+            &no_signals(),
+            &empty_folders(),
+            &no_skills()
+        ));
     }
 
     #[test]
@@ -311,8 +341,8 @@ mod tests {
 
     #[test]
     fn project_meta_extracts_name_from_package_json() {
-        use std::path::PathBuf;
         use crate::types::SignalKind;
+        use std::path::PathBuf;
 
         let signal = SignalFile {
             kind: SignalKind::PackageJson,
@@ -327,8 +357,8 @@ mod tests {
 
     #[test]
     fn project_meta_falls_back_to_cargo_toml() {
-        use std::path::PathBuf;
         use crate::types::SignalKind;
+        use std::path::PathBuf;
 
         let signal = SignalFile {
             kind: SignalKind::CargoToml,
