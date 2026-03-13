@@ -1,78 +1,108 @@
 name: Release
 
+# Triggered by pushing a version tag: git tag v0.1.0 && git push --tags
 on:
   push:
     tags:
-      - "v*.*.*"
+      - 'v*'
 
-env:
-  CARGO_TERM_COLOR: always
+permissions:
+  contents: write   # needed to create GitHub releases
 
+# ── Job 1: Build Rust binary + publish platform package (runs 4× in parallel) ─
 jobs:
-  build:
-    name: Build ${{ matrix.target }}
+  build-and-publish-platform:
+    name: Build ${{ matrix.npm-pkg }}
     runs-on: ${{ matrix.os }}
+
     strategy:
+      fail-fast: false    # don't cancel other platforms if one fails
       matrix:
         include:
-          - target: x86_64-unknown-linux-gnu
-            os: ubuntu-latest
-            pkg: repo-intel-linux-x64
-            binary: repo-intel
+          - target:   x86_64-unknown-linux-gnu
+            os:       ubuntu-latest
+            npm-pkg:  repo-intel-linux-x64
+            binary:   repo-intel
 
-          - target: aarch64-apple-darwin
-            os: macos-latest
-            pkg: repo-intel-darwin-arm64
-            binary: repo-intel
+          - target:   aarch64-apple-darwin
+            os:       macos-latest
+            npm-pkg:  repo-intel-darwin-arm64
+            binary:   repo-intel
 
-          - target: x86_64-apple-darwin
-            os: macos-latest
-            pkg: repo-intel-darwin-x64
-            binary: repo-intel
+          - target:   x86_64-apple-darwin
+            os:       macos-latest
+            npm-pkg:  repo-intel-darwin-x64
+            binary:   repo-intel
 
-          - target: x86_64-pc-windows-gnu
-            os: windows-latest
-            pkg: repo-intel-win32-x64
-            binary: repo-intel.exe
+          - target:   x86_64-pc-windows-msvc
+            os:       windows-latest
+            npm-pkg:  repo-intel-win32-x64
+            binary:   repo-intel.exe
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
+      # ── Rust toolchain + target ──────────────────────────────────────────────
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
 
-      - name: Cache Cargo
+      # ── Cargo cache — cuts cold build from ~5min to ~30s ────────────────────
+      - name: Cache cargo registry + build
         uses: actions/cache@v4
         with:
           path: |
-            ~/.cargo/registry
-            ~/.cargo/git
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: cargo-${{ matrix.target }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ matrix.target }}-
 
+      # ── Build release binary ─────────────────────────────────────────────────
       - name: Build release binary
-        run: cargo build --release --target ${{ matrix.target }} -p repo-intel-core
+        run: cargo build --release --target ${{ matrix.target }}
 
-      - name: Copy binary to package
-        run: |
-          mkdir -p packages/${{ matrix.pkg }}/bin
-          cp target/${{ matrix.target }}/release/${{ matrix.binary }} packages/${{ matrix.pkg }}/bin/
+      # ── Copy binary into platform npm package ────────────────────────────────
+      - name: Copy binary to platform package
         shell: bash
+        run: |
+          mkdir -p packages/${{ matrix.npm-pkg }}/bin
+          cp target/${{ matrix.target }}/release/${{ matrix.binary }} \
+             packages/${{ matrix.npm-pkg }}/bin/${{ matrix.binary }}
+          echo "Binary size: $(du -sh packages/${{ matrix.npm-pkg }}/bin/${{ matrix.binary }})"
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      # ── pnpm + Node setup ────────────────────────────────────────────────────
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
         with:
-          name: ${{ matrix.pkg }}
-          path: packages/${{ matrix.pkg }}/bin/
+          version: 9
 
-  publish:
-    name: Publish npm packages
-    needs: build
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      # ── Publish platform package ─────────────────────────────────────────────
+      - name: Publish ${{ matrix.npm-pkg }}
+        working-directory: packages/${{ matrix.npm-pkg }}
+        run: pnpm publish --access public --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+# ── Job 2: Build JS layer + publish main package (runs after all 4 platforms) ─
+  publish-main:
+    name: Publish repo-intel (main)
+    needs: build-and-publish-platform
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -82,31 +112,36 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          registry-url: "https://registry.npmjs.org"
-          cache: "pnpm"
+          node-version: 20
+          registry-url: https://registry.npmjs.org
 
-      - name: Install dependencies
+      - name: Install JS dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Download all binaries
-        uses: actions/download-artifact@v4
-        with:
-          path: packages/
-
-      - name: Build JS packages
+      # ── Build TypeScript layer ───────────────────────────────────────────────
+      - name: Build JS layer
+        working-directory: packages/repo-intel
         run: pnpm build
 
-      - name: Publish platform packages
-        run: |
-          pnpm -r --filter "repo-intel-linux-x64" publish --access public --no-git-checks
-          pnpm -r --filter "repo-intel-darwin-arm64" publish --access public --no-git-checks
-          pnpm -r --filter "repo-intel-darwin-x64" publish --access public --no-git-checks
-          pnpm -r --filter "repo-intel-win32-x64" publish --access public --no-git-checks
+      # ── Publish main package ─────────────────────────────────────────────────
+      - name: Publish repo-intel
+        working-directory: packages/repo-intel
+        run: pnpm publish --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Publish main package
-        run: pnpm -r --filter "repo-intel" publish --access public --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # ── Create GitHub release ────────────────────────────────────────────────
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          body: |
+            ## Installation
+
+            ```bash
+            npm install -g repo-intel
+            # or
+            npx repo-intel generate
+            ```
+
+            See [README](https://github.com/ekaone/repo-intel#readme) for full usage.

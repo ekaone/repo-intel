@@ -1,10 +1,16 @@
 {
   "name": "repo-intel-linux-x64",
   "version": "0.1.0",
-  "description": "Linux x64 binary for repo-intel",
+  "description": "repo-intel binary for Linux x64",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ekaone/repo-intel"
+  },
   "os": ["linux"],
   "cpu": ["x64"],
-  "files": ["bin"],
-  "publishConfig": { "access": "public" }
+  "bin": {
+    "repo-intel": "./bin/repo-intel"
+  },
+  "files": ["bin/"]
 }

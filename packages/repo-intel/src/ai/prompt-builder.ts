@@ -187,6 +187,10 @@ The document must contain exactly these sections, in this order:
 9. **Rules** — 5–8 hard constraints this agent always follows. Include at least one rule about code quality and one about collaboration with other agents.
 10. **Metrics** — 3–5 measurable success criteria relevant to this specific role and stack.
 
+**Voice: always second person ("You are...", "You own...", "You retain...").**
+Never use first person ("I am", "I own", "I retain"). The document is read by an AI
+assistant that must adopt this persona — second person makes that adoption direct and unambiguous.
+
 **Quality requirements:**
 - **Be specific** — reference the actual stack, folder names, and domain context. Never use placeholders like "[framework]" or "[tool]".
 - **Be opinionated** — the agent should have a clear, strong point of view shaped by the detected stack.

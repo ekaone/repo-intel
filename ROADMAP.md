@@ -20,6 +20,7 @@
 - `repo-intel stale` command — detect outdated agent docs
 - YAML / JSON output formats
 - Custom prompt templates
+- After --dry-run: 104791ms (~105 seconds) for 3 roles — that's ~35s per LLM call. Expected for claude-sonnet with 6-7k char outputs. The sequential design is correct (avoids rate limits) but for v0.2.0 you could add a --parallel flag for users who want speed over safety.
 
 ## v0.2.x — SDK
 > Status: Planned

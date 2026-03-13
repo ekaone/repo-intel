@@ -1,16 +1,10 @@
 # repo-intel
 
-> **🚧 Under Active Development** - Not yet released. Work in progress.
-
 > Scan your repository. Generate AI agent documentation. Instantly.
 
 **repo-intel** is a blazing-fast CLI tool powered by a Rust core that scans your codebase,
 detects your tech stack, and generates rich AI agent persona docs — so tools like
 Claude Code, Cursor, and GitHub Copilot actually understand your project.
-
-> **Current Status**: Development phase. Core Rust scanner is functional, TypeScript layer in progress.
-> **Planned Release**: v0.1.0 targeting early 2026.
-> **Contributions**: Welcome! See [contributing guide](docs/contributing.md).
 
 ```bash
 npx repo-intel generate
@@ -23,11 +17,9 @@ npx repo-intel generate
   agents/frontend-engineer.md
   agents/fullstack-engineer.md
   agents/database-engineer.md
-  agents/testing-engineer.md
+  agents/qa-testing-engineer.md
 ✓ Written: AGENTS.md
 ```
-
-> **Note**: The above output represents the target functionality. Currently implementing the core scanning and detection logic.
 
 ---
 
@@ -133,6 +125,7 @@ repo-intel generate --provider openai          # use OpenAI instead
 repo-intel generate --provider ollama          # use local Ollama
 repo-intel generate --no-ai                    # skip LLM, static output
 repo-intel generate --dry-run                  # preview, no files written
+repo-intel generate --debug                    # verbose output
 ```
 
 ### `repo-intel scan`
@@ -144,13 +137,6 @@ debugging what the tool detected, or piping to your own tooling.
 repo-intel scan
 repo-intel scan --pretty                       # human-readable JSON
 repo-intel scan --root ./my-project
-```
-
-### `repo-intel version`
-
-```bash
-repo-intel version
-# repo-intel 0.1.0
 ```
 
 ---
@@ -203,7 +189,6 @@ format = "markdown"
 exclude = ["legacy/", "vendor/", "generated/"]
 
 [stack]
-# Force-include skills the scanner might miss
 override = []
 ```
 
@@ -220,42 +205,18 @@ agents/
   frontend-engineer.md
   fullstack-engineer.md
   database-engineer.md
-  testing-engineer.md
+  qa-testing-engineer.md
   devops-engineer.md
 ```
 
-Each file contains a rich, project-aware agent persona:
-
-```markdown
-# Frontend Engineer Agent
-
-## Identity
-Expert React + TypeScript UI engineer, specialising in
-Next.js server components and performance optimisation.
-
-## Stack
-- Next.js 14 (App Router)
-- TypeScript 5
-- Tailwind CSS 3
-- Zustand (client state)
-- TanStack Query (server state)
-
-## Core Responsibilities
-- Build reusable components following the design system in src/components/ui/
-- Maintain hooks architecture in src/hooks/
-- Own Core Web Vitals: LCP < 2.5s, FID < 100ms, CLS < 0.1
-
-## Workflow
-1. Check existing components before creating new ones
-2. Follow feature-based structure: src/modules/{feature}/components/
-3. Write Vitest tests alongside every component
-...
-```
+Each file contains a rich, project-aware agent persona with sections for
+Identity, Personality, Memory, Experience, Core Responsibilities, Workflow,
+Deliverables, Rules, and Metrics — all specific to your actual codebase.
 
 ### `AGENTS.md`
 
-A summary index at your repo root listing all generated agents — the
-"README for your AI agents."
+A summary index at your repo root listing all generated agents with relative
+links — the "README for your AI agents."
 
 ---
 
@@ -293,7 +254,7 @@ If you don't have an API key or want a quick static output:
 repo-intel generate --no-ai
 ```
 
-Produces a simpler but accurate agent doc based on detected stack only —
+Produces a structured agent doc based on detected stack only —
 no LLM call, instant output, always free.
 
 ---
@@ -301,25 +262,38 @@ no LLM call, instant output, always free.
 ## Programmatic API
 
 ```typescript
-import { analyze, generate } from 'repo-intel'
+import { scan, generate, analyze } from 'repo-intel'
+import type { AIConfig } from 'repo-intel'
 
-// Full pipeline — scan + LLM generate
-const docs = await generate({
-  root: '.',
-  output: './agents',
+// ── scan only — no LLM ──────────────────────────────────────
+const context = await scan('./my-project')
+console.log(context.stack.language)   // "TypeScript"
+console.log(context.stack.framework)  // "Next.js"
+console.log(context.agent_roles)      // ["Fullstack Engineer", "QA & Testing Engineer"]
+
+// ── generate docs from an existing context ──────────────────
+const config: AIConfig = {
   provider: 'anthropic',
-})
+  // apiKey resolved from ANTHROPIC_API_KEY env var automatically
+}
+
+const { docs, errors } = await generate(context, config)
 
 docs.forEach(doc => {
-  console.log(doc.role)     // "Frontend Engineer"
-  console.log(doc.filename) // "frontend-engineer.md"
-  console.log(doc.content)  // full markdown content
+  console.log(doc.role)      // "Fullstack Engineer"
+  console.log(doc.filename)  // "fullstack-engineer.md"
+  console.log(doc.content)   // full markdown content
 })
 
-// Scan only — no LLM
-const context = await analyze({ root: '.' })
-console.log(context.stack)   // { framework: 'Next.js', ... }
-console.log(context.skills)  // [{ name: 'React', confidence: 0.99 }, ...]
+// ── full pipeline: scan + generate (dryRun: true = no files written) ──
+const result = await analyze('./my-project', {
+  provider: 'anthropic',
+  dryRun: true,
+})
+
+console.log(result.docs.length)   // number of docs generated
+console.log(result.durationMs)    // total pipeline time
+console.log(result.usedAi)        // true
 ```
 
 ---
@@ -331,7 +305,7 @@ console.log(context.skills)  // [{ name: 'React', confidence: 0.99 }, ...]
 | Scan 1,000 files | ~30ms |
 | Scan 6,000 files | ~150ms |
 | Scan 20,000 files | ~400ms |
-| LLM generation (3 agents) | ~5–15s |
+| LLM generation (3 agents) | ~80–110s |
 | `--no-ai` mode | ~200ms total |
 
 The Rust core is the fast part. The LLM call dominates total time —
@@ -386,7 +360,7 @@ cargo build
 
 ```bash
 cargo test          # Rust tests
-pnpm test           # JS tests
+pnpm test           # JS tests (from packages/repo-intel)
 ```
 
 ---
