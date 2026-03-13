@@ -55,8 +55,10 @@ pub enum AiProvider {
     Ollama,
 }
 
-impl AiProvider {
-    pub fn from_str(s: &str) -> Result<Self> {
+impl std::str::FromStr for AiProvider {
+    type Err = RepoIntelError;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
             "anthropic" => Ok(Self::Anthropic),
             "openai" => Ok(Self::OpenAi),
@@ -66,7 +68,9 @@ impl AiProvider {
             }),
         }
     }
+}
 
+impl AiProvider {
     pub fn default_model(&self) -> &'static str {
         match self {
             Self::Anthropic => "claude-sonnet-4-20250514",

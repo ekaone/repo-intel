@@ -118,7 +118,7 @@ fn run(cli: Cli) -> repo_intel_core::Result<()> {
 
             // Apply CLI provider override
             if let Some(p) = provider {
-                cfg.ai.provider = repo_intel_core::config::AiProvider::from_str(&p)?;
+                cfg.ai.provider = p.parse()?;
             }
 
             if debug {
