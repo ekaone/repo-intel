@@ -1,5 +1,5 @@
 import { mkdirSync, writeFileSync } from "fs";
-import { join, dirname, relative } from "path";
+import { join, dirname, relative, basename } from "path";
 import type { AgentDoc, RepoContext } from "../types";
 
 // ── Main export ───────────────────────────────────────────────────────────────
@@ -57,7 +57,7 @@ export function writeAgentDocs(
 function writeAgentsIndex(docs: AgentDoc[], outputDir: string): void {
   // Place AGENTS.md one level above the agents/ folder — at repo root
   const indexPath = join(dirname(outputDir), "AGENTS.md");
-  const agentsDir = outputDir.split("/").pop() ?? "agents";
+  const agentsDir = basename(outputDir) || "agents";
 
   const content = buildAgentsIndexContent(docs, agentsDir);
 
@@ -105,7 +105,7 @@ export function buildAgentsIndexContent(
 
 function printDryRun(docs: AgentDoc[], outputDir: string): void {
   const separator = "─".repeat(60);
-  const agentsDir = outputDir.split("/").pop() ?? "agents";
+  const agentsDir = basename(outputDir) || "agents";
 
   console.log(`\n${separator}`);
   console.log(
