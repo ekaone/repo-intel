@@ -259,10 +259,13 @@ describe("buildPrompt() — team context", () => {
 
   it("does not list the current role as another agent", () => {
     const prompt = buildPrompt(makeContext(), "Fullstack Engineer");
-    // "Fullstack Engineer" should appear as the target role, but only once
-    // in the "other roles" context (it should NOT appear in the other-roles list)
-    const otherRolesSection = prompt.split("Other agents")[1] ?? "";
-    expect(otherRolesSection).not.toContain("Fullstack Engineer");
+    // Extract only the other-roles line — the role name legitimately appears
+    // again later in ## Your Task, so we must not check the entire tail.
+    const afterLabel = prompt.split("Other agents in this project:**")[1] ?? "";
+    const otherRolesLine = afterLabel.split("\n")[0];
+    expect(otherRolesLine).not.toContain("Fullstack Engineer");
+    expect(otherRolesLine).toContain("QA & Testing Engineer");
+    expect(otherRolesLine).toContain("Database Engineer");
   });
 
   it("notes no other agents when roles array has one entry", () => {
