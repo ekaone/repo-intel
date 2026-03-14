@@ -1,6 +1,6 @@
 {
   "name": "@ekaone/repo-intel-linux-x64",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "repo-intel binary for Linux x64",
   "license": "MIT",
   "repository": {
@@ -9,8 +9,5 @@
   },
   "os": ["linux"],
   "cpu": ["x64"],
-  "bin": {
-    "repo-intel": "./bin/repo-intel"
-  },
   "files": ["bin/"]
 }

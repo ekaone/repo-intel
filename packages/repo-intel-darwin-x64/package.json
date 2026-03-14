@@ -1,6 +1,6 @@
 {
   "name": "@ekaone/repo-intel-darwin-x64",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "repo-intel binary for macOS x64 (Intel)",
   "license": "MIT",
   "repository": {
@@ -9,8 +9,5 @@
   },
   "os": ["darwin"],
   "cpu": ["x64"],
-  "bin": {
-    "repo-intel": "./bin/repo-intel"
-  },
   "files": ["bin/"]
 }
