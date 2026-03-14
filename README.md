@@ -107,12 +107,25 @@ pnpm add -g @ekaone/repo-intel @ekaone/repo-intel-win32-x64
 
 **1. Set your API key**
 
+macOS / Linux:
 ```bash
-# Anthropic (default)
 export ANTHROPIC_API_KEY=your-key-here
+repo-intel generate
+```
 
-# or OpenAI
-export OPENAI_API_KEY=your-key-here
+Windows (inline — recommended):
+```bash
+ANTHROPIC_API_KEY=your-key-here repo-intel generate
+```
+
+Windows (permanent — open a new terminal after running):
+```bash
+setx ANTHROPIC_API_KEY "your-key-here"
+```
+
+OpenAI instead:
+```bash
+OPENAI_API_KEY=your-key-here repo-intel generate --provider openai
 ```
 
 **2. Run in your project**
@@ -161,16 +174,14 @@ repo-intel scan --root ./my-project
 ### Anthropic (default)
 
 ```bash
-export ANTHROPIC_API_KEY=your-key
-repo-intel generate
+ANTHROPIC_API_KEY=your-key repo-intel generate
 # uses claude-sonnet-4-20250514 by default
 ```
 
 ### OpenAI
 
 ```bash
-export OPENAI_API_KEY=your-key
-repo-intel generate --provider openai
+OPENAI_API_KEY=your-key repo-intel generate --provider openai
 # uses gpt-4o by default
 ```
 
@@ -320,6 +331,7 @@ console.log(result.usedAi)        // true
 | Scan 1,000 files | ~30ms |
 | Scan 6,000 files | ~150ms |
 | Scan 20,000 files | ~400ms |
+| LLM generation (1 agent) | ~35–40s |
 | LLM generation (3 agents) | ~80–110s |
 | `--no-ai` mode | ~200ms total |
 
@@ -349,7 +361,7 @@ main package — see [Installation](#installation) above.
 
 | Version | Focus |
 |---|---|
-| **v0.1.0** | CLI MVP — scan, detect, LLM generate, npm publish |
+| **v0.1.x** | CLI MVP — scan, detect, LLM generate, npm publish |
 | **v0.2.0** | Incremental cache, rayon parallel, watch mode, YAML output |
 | **v0.2.x** | `repo-intel-sdk` — programmatic SDK package |
 | **v0.3.0** | `repo-intel-native` — napi-rs bridge for maximum performance |
