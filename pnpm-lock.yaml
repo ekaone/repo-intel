@@ -52,16 +52,16 @@ importers:
         specifier: ^4.0.18
         version: 4.0.18(@types/node@25.4.0)(@vitest/ui@4.0.18)
     optionalDependencies:
-      repo-intel-darwin-arm64:
+      '@ekaone/repo-intel-darwin-arm64':
         specifier: workspace:*
         version: link:../repo-intel-darwin-arm64
-      repo-intel-darwin-x64:
+      '@ekaone/repo-intel-darwin-x64':
         specifier: workspace:*
         version: link:../repo-intel-darwin-x64
-      repo-intel-linux-x64:
+      '@ekaone/repo-intel-linux-x64':
         specifier: workspace:*
         version: link:../repo-intel-linux-x64
-      repo-intel-win32-x64:
+      '@ekaone/repo-intel-win32-x64':
         specifier: workspace:*
         version: link:../repo-intel-win32-x64
 
