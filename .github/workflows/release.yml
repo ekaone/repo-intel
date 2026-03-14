@@ -88,7 +88,9 @@ jobs:
         working-directory: packages/${{ matrix.npm-pkg }}
         run: |
           npm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }}
-          pnpm publish --access public --no-git-checks
+          npm view ${{ matrix.npm-name }}@$(node -p "require('./package.json').version") > /dev/null 2>&1 \
+            && echo "Already published, skipping" \
+            || pnpm publish --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -122,7 +124,9 @@ jobs:
         working-directory: packages/repo-intel
         run: |
           npm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }}
-          pnpm publish --access public --no-git-checks
+          npm view @ekaone/repo-intel@$(node -p "require('./package.json').version") > /dev/null 2>&1 \
+            && echo "Already published, skipping" \
+            || pnpm publish --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
