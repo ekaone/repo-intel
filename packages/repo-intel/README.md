@@ -5,15 +5,15 @@
 ## Installation
 
 ```bash
-npm install repo-intel
+npm install @ekaone/repo-intel
 # or
-pnpm add repo-intel
+pnpm add @ekaone/repo-intel
 ```
 
 ## Programmatic API
 
 ```typescript
-import { analyze, scan, generate } from "repo-intel";
+import { analyze, scan, generate } from "@ekaone/repo-intel";
 
 // Full pipeline: scan + AI generate
 const result = await analyze({ root: process.cwd() });
@@ -29,13 +29,13 @@ await generate({ context, outputDir: "agents" });
 
 ```bash
 # Generate agent docs
-npx repo-intel generate
+npx @ekaone/repo-intel generate
 
 # Just scan and print context.json
-npx repo-intel scan
+npx @ekaone/repo-intel scan
 
 # Use a specific AI provider
-npx repo-intel generate --provider anthropic
+npx @ekaone/repo-intel generate --provider anthropic
 ```
 
 ## Configuration

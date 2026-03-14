@@ -7,7 +7,7 @@ detects your tech stack, and generates rich AI agent persona docs — so tools l
 Claude Code, Cursor, and GitHub Copilot actually understand your project.
 
 ```bash
-npx repo-intel generate
+npx @ekaone/repo-intel generate
 ```
 
 ```
