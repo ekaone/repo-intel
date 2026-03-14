@@ -85,6 +85,7 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - name: Publish ${{ matrix.npm-pkg }}
+        shell: bash
         working-directory: packages/${{ matrix.npm-pkg }}
         run: |
           npm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }}
@@ -121,6 +122,7 @@ jobs:
         run: pnpm --filter @ekaone/repo-intel build
 
       - name: Publish @ekaone/repo-intel
+        shell: bash
         working-directory: packages/repo-intel
         run: |
           npm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }}
