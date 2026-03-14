@@ -6,10 +6,6 @@
 detects your tech stack, and generates rich AI agent persona docs — so tools like
 Claude Code, Cursor, and GitHub Copilot actually understand your project.
 
-```bash
-npx @ekaone/repo-intel generate
-```
-
 ```
 ✓ Scanned 6,241 files in 147ms
 ✓ Detected: Next.js · TypeScript · Tailwind CSS · Prisma · Vitest
@@ -75,15 +71,34 @@ The TypeScript layer handles the LLM call and file output.
 
 ## Installation
 
+repo-intel ships a platform-specific Rust binary. You must install **both** the main
+package and the binary package for your OS.
+
+> **Note:** `npx` will not work — it skips optional dependencies and the binary won't be found.
+> Always use a proper global install as shown below.
+
+### macOS (Apple Silicon)
+
 ```bash
-# npm
-npm install -g @ekaone/repo-intel
+pnpm add -g @ekaone/repo-intel @ekaone/repo-intel-darwin-arm64
+```
 
-# pnpm
-pnpm add -g @ekaone/repo-intel
+### macOS (Intel)
 
-# or run without installing
-npx @ekaone/repo-intel generate
+```bash
+pnpm add -g @ekaone/repo-intel @ekaone/repo-intel-darwin-x64
+```
+
+### Linux x64
+
+```bash
+pnpm add -g @ekaone/repo-intel @ekaone/repo-intel-linux-x64
+```
+
+### Windows x64
+
+```bash
+pnpm add -g @ekaone/repo-intel @ekaone/repo-intel-win32-x64
 ```
 
 ---
@@ -104,7 +119,7 @@ export OPENAI_API_KEY=your-key-here
 
 ```bash
 cd your-project
-npx @ekaone/repo-intel generate
+repo-intel generate
 ```
 
 **3. Done** — check `./agents/` and `AGENTS.md`
@@ -113,30 +128,30 @@ npx @ekaone/repo-intel generate
 
 ## Commands
 
-### `@ekaone/repo-intel generate`
+### `repo-intel generate`
 
 Full pipeline — scan repo, detect stack, generate agent docs via LLM.
 
 ```bash
-@ekaone/repo-intel generate
-@ekaone/repo-intel generate --root ./my-project        # custom root
-@ekaone/repo-intel generate --output ./docs/agents     # custom output dir
-@ekaone/repo-intel generate --provider openai          # use OpenAI instead
-@ekaone/repo-intel generate --provider ollama          # use local Ollama
-@ekaone/repo-intel generate --no-ai                    # skip LLM, static output
-@ekaone/repo-intel generate --dry-run                  # preview, no files written
-@ekaone/repo-intel generate --debug                    # verbose output
+repo-intel generate
+repo-intel generate --root ./my-project        # custom root
+repo-intel generate --output ./docs/agents     # custom output dir
+repo-intel generate --provider openai          # use OpenAI instead
+repo-intel generate --provider ollama          # use local Ollama
+repo-intel generate --no-ai                    # skip LLM, static output
+repo-intel generate --dry-run                  # preview, no files written
+repo-intel generate --debug                    # verbose output
 ```
 
-### `@ekaone/repo-intel scan`
+### `repo-intel scan`
 
 Scan only — outputs `context.json` to stdout. No LLM call. Useful for
 debugging what the tool detected, or piping to your own tooling.
 
 ```bash
-@ekaone/repo-intel scan
-@ekaone/repo-intel scan --pretty                       # human-readable JSON
-@ekaone/repo-intel scan --root ./my-project
+repo-intel scan
+repo-intel scan --pretty                       # human-readable JSON
+repo-intel scan --root ./my-project
 ```
 
 ---
@@ -147,7 +162,7 @@ debugging what the tool detected, or piping to your own tooling.
 
 ```bash
 export ANTHROPIC_API_KEY=your-key
-@ekaone/repo-intel generate
+repo-intel generate
 # uses claude-sonnet-4-20250514 by default
 ```
 
@@ -155,7 +170,7 @@ export ANTHROPIC_API_KEY=your-key
 
 ```bash
 export OPENAI_API_KEY=your-key
-@ekaone/repo-intel generate --provider openai
+repo-intel generate --provider openai
 # uses gpt-4o by default
 ```
 
@@ -164,7 +179,7 @@ export OPENAI_API_KEY=your-key
 ```bash
 # Install Ollama: https://ollama.com
 ollama pull llama3.2
-@ekaone/repo-intel generate --provider ollama
+repo-intel generate --provider ollama
 # no API key needed
 ```
 
@@ -251,7 +266,7 @@ agent responsibilities. Skills below 0.50 are ignored.
 If you don't have an API key or want a quick static output:
 
 ```bash
-@ekaone/repo-intel generate --no-ai
+repo-intel generate --no-ai
 ```
 
 Produces a structured agent doc based on detected stack only —
@@ -318,14 +333,15 @@ that's expected and unavoidable when generating rich, project-aware content.
 repo-intel ships pre-compiled Rust binaries for all major platforms.
 No Rust toolchain required.
 
-| Platform | Package |
+| Platform | Binary package |
 |---|---|
-| macOS (Apple Silicon) | `repo-intel-darwin-arm64` |
-| macOS (Intel) | `repo-intel-darwin-x64` |
-| Linux x64 | `repo-intel-linux-x64` |
-| Windows x64 | `repo-intel-win32-x64` |
+| macOS (Apple Silicon) | `@ekaone/repo-intel-darwin-arm64` |
+| macOS (Intel) | `@ekaone/repo-intel-darwin-x64` |
+| Linux x64 | `@ekaone/repo-intel-linux-x64` |
+| Windows x64 | `@ekaone/repo-intel-win32-x64` |
 
-Binaries are automatically selected by the npm installer based on your OS and CPU.
+The binary package for your platform must be installed explicitly alongside the
+main package — see [Installation](#installation) above.
 
 ---
 
@@ -371,7 +387,7 @@ MIT © Eka Prasetia — see [LICENSE](./LICENSE) for details.
 
 ## Links
 
-- [NPM Package](https://www.npmjs.com/package/repo-intel)
+- [NPM Package](https://www.npmjs.com/package/@ekaone/repo-intel)
 - [GitHub Repository](https://github.com/ekaone/repo-intel)
 - [Issue Tracker](https://github.com/ekaone/repo-intel/issues)
 

@@ -67,6 +67,7 @@ export function getBinaryPath(): string {
     throw new Error(
       `repo-intel: platform binary not found for '${platformKey}'\n` +
         `Install the platform package: npm install ${pkgName}\n` +
+        `Note: 'npx @ekaone/repo-intel' will not work — use a proper install instead.\n` +
         `Or build from source: cargo build --release`,
     );
   }
