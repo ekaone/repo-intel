@@ -52,10 +52,10 @@ describe("getPlatformPackageName()", () => {
     expect(result === null || typeof result === "string").toBe(true);
   });
 
-  it("returns a string starting with repo-intel- when supported", () => {
+  it("returns a scoped @ekaone/repo-intel- package name when supported", () => {
     const result = getPlatformPackageName();
     if (result !== null) {
-      expect(result).toMatch(/^repo-intel-/);
+      expect(result).toMatch(/^@ekaone\/repo-intel-/);
     }
   });
 });

@@ -1,3 +1,4 @@
+import path from "path";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { RepoContext } from "../src/types";
 
@@ -121,7 +122,7 @@ describe("runRustPipeline() — happy path", () => {
     runRustPipeline("relative/path");
     const [, args] = vi.mocked(spawnSync).mock.calls[0]!;
     const rootArg = (args as string[])[2]!;
-    expect(rootArg.startsWith("/")).toBe(true);
+    expect(path.isAbsolute(rootArg)).toBe(true); // ✅ works on Windows + Unix
   });
 
   it("returns agent_roles array", () => {
