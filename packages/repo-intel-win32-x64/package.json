@@ -1,5 +1,5 @@
 {
-  "name": "repo-intel-win32-x64",
+  "name": "@ekaone/repo-intel-win32-x64",
   "version": "0.1.0",
   "description": "repo-intel binary for Windows x64",
   "license": "MIT",

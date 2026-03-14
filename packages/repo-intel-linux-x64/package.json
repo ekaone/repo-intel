@@ -1,5 +1,5 @@
 {
-  "name": "repo-intel-linux-x64",
+  "name": "@ekaone/repo-intel-linux-x64",
   "version": "0.1.0",
   "description": "repo-intel binary for Linux x64",
   "license": "MIT",

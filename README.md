@@ -77,13 +77,13 @@ The TypeScript layer handles the LLM call and file output.
 
 ```bash
 # npm
-npm install -g repo-intel
+npm install -g @ekaone/repo-intel
 
 # pnpm
-pnpm add -g repo-intel
+pnpm add -g @ekaone/repo-intel
 
 # or run without installing
-npx repo-intel generate
+npx @ekaone/repo-intel generate
 ```
 
 ---
@@ -104,7 +104,7 @@ export OPENAI_API_KEY=your-key-here
 
 ```bash
 cd your-project
-npx repo-intel generate
+npx @ekaone/repo-intel generate
 ```
 
 **3. Done** — check `./agents/` and `AGENTS.md`
@@ -113,30 +113,30 @@ npx repo-intel generate
 
 ## Commands
 
-### `repo-intel generate`
+### `@ekaone/repo-intel generate`
 
 Full pipeline — scan repo, detect stack, generate agent docs via LLM.
 
 ```bash
-repo-intel generate
-repo-intel generate --root ./my-project        # custom root
-repo-intel generate --output ./docs/agents     # custom output dir
-repo-intel generate --provider openai          # use OpenAI instead
-repo-intel generate --provider ollama          # use local Ollama
-repo-intel generate --no-ai                    # skip LLM, static output
-repo-intel generate --dry-run                  # preview, no files written
-repo-intel generate --debug                    # verbose output
+@ekaone/repo-intel generate
+@ekaone/repo-intel generate --root ./my-project        # custom root
+@ekaone/repo-intel generate --output ./docs/agents     # custom output dir
+@ekaone/repo-intel generate --provider openai          # use OpenAI instead
+@ekaone/repo-intel generate --provider ollama          # use local Ollama
+@ekaone/repo-intel generate --no-ai                    # skip LLM, static output
+@ekaone/repo-intel generate --dry-run                  # preview, no files written
+@ekaone/repo-intel generate --debug                    # verbose output
 ```
 
-### `repo-intel scan`
+### `@ekaone/repo-intel scan`
 
 Scan only — outputs `context.json` to stdout. No LLM call. Useful for
 debugging what the tool detected, or piping to your own tooling.
 
 ```bash
-repo-intel scan
-repo-intel scan --pretty                       # human-readable JSON
-repo-intel scan --root ./my-project
+@ekaone/repo-intel scan
+@ekaone/repo-intel scan --pretty                       # human-readable JSON
+@ekaone/repo-intel scan --root ./my-project
 ```
 
 ---
@@ -147,7 +147,7 @@ repo-intel scan --root ./my-project
 
 ```bash
 export ANTHROPIC_API_KEY=your-key
-repo-intel generate
+@ekaone/repo-intel generate
 # uses claude-sonnet-4-20250514 by default
 ```
 
@@ -155,7 +155,7 @@ repo-intel generate
 
 ```bash
 export OPENAI_API_KEY=your-key
-repo-intel generate --provider openai
+@ekaone/repo-intel generate --provider openai
 # uses gpt-4o by default
 ```
 
@@ -164,7 +164,7 @@ repo-intel generate --provider openai
 ```bash
 # Install Ollama: https://ollama.com
 ollama pull llama3.2
-repo-intel generate --provider ollama
+@ekaone/repo-intel generate --provider ollama
 # no API key needed
 ```
 
@@ -251,7 +251,7 @@ agent responsibilities. Skills below 0.50 are ignored.
 If you don't have an API key or want a quick static output:
 
 ```bash
-repo-intel generate --no-ai
+@ekaone/repo-intel generate --no-ai
 ```
 
 Produces a structured agent doc based on detected stack only —
@@ -262,8 +262,8 @@ no LLM call, instant output, always free.
 ## Programmatic API
 
 ```typescript
-import { scan, generate, analyze } from 'repo-intel'
-import type { AIConfig } from 'repo-intel'
+import { scan, generate, analyze } from '@ekaone/repo-intel'
+import type { AIConfig } from '@ekaone/repo-intel'
 
 // ── scan only — no LLM ──────────────────────────────────────
 const context = await scan('./my-project')

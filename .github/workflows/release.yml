@@ -22,21 +22,25 @@ jobs:
           - target:   x86_64-unknown-linux-gnu
             os:       ubuntu-latest
             npm-pkg:  repo-intel-linux-x64
+            npm-name: "@ekaone/repo-intel-linux-x64"
             binary:   repo-intel
 
           - target:   aarch64-apple-darwin
             os:       macos-latest
             npm-pkg:  repo-intel-darwin-arm64
+            npm-name: "@ekaone/repo-intel-darwin-arm64"
             binary:   repo-intel
 
           - target:   x86_64-apple-darwin
             os:       macos-latest
             npm-pkg:  repo-intel-darwin-x64
+            npm-name: "@ekaone/repo-intel-darwin-x64"
             binary:   repo-intel
 
           - target:   x86_64-pc-windows-msvc
             os:       windows-latest
             npm-pkg:  repo-intel-win32-x64
+            npm-name: "@ekaone/repo-intel-win32-x64"
             binary:   repo-intel.exe
 
     steps:
@@ -49,8 +53,8 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
-      # ── Cargo cache — cuts cold build from ~5min to ~30s ────────────────────
-      - name: Cache cargo registry + build
+      # ── Cargo cache ─────────────────────────────────────────────────────────
+      - name: Cache cargo
         uses: actions/cache@v4
         with:
           path: |
@@ -90,13 +94,15 @@ jobs:
       # ── Publish platform package ─────────────────────────────────────────────
       - name: Publish ${{ matrix.npm-pkg }}
         working-directory: packages/${{ matrix.npm-pkg }}
-        run: pnpm publish --access public --no-git-checks
+        run: |
+          npm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }}
+          pnpm publish --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
 # ── Job 2: Build JS layer + publish main package (runs after all 4 platforms) ─
   publish-main:
-    name: Publish repo-intel (main)
+    name: Publish @ekaone/repo-intel (main)
     needs: build-and-publish-platform
     runs-on: ubuntu-latest
 
@@ -115,33 +121,21 @@ jobs:
           node-version: 20
           registry-url: https://registry.npmjs.org
 
-      - name: Install JS dependencies
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # ── Build TypeScript layer ───────────────────────────────────────────────
-      - name: Build JS layer
-        working-directory: packages/repo-intel
-        run: pnpm build
+      - name: Build TypeScript
+        run: pnpm --filter repo-intel build
 
-      # ── Publish main package ─────────────────────────────────────────────────
       - name: Publish repo-intel
         working-directory: packages/repo-intel
-        run: pnpm publish --access public --no-git-checks
+        run: |
+          npm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }}
+          pnpm publish --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      # ── Create GitHub release ────────────────────────────────────────────────
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
-          body: |
-            ## Installation
-
-            ```bash
-            npm install -g repo-intel
-            # or
-            npx repo-intel generate
-            ```
-
-            See [README](https://github.com/ekaone/repo-intel#readme) for full usage.

@@ -1,5 +1,5 @@
 {
-  "name": "repo-intel-darwin-x64",
+  "name": "@ekaone/repo-intel-darwin-x64",
   "version": "0.1.0",
   "description": "repo-intel binary for macOS x64 (Intel)",
   "license": "MIT",

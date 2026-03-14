@@ -6,10 +6,10 @@ import { fileURLToPath } from "url";
 // ── Platform → npm package mapping ───────────────────────────────────────────
 
 const PLATFORM_PACKAGES: Record<string, string> = {
-  "linux-x64": "repo-intel-linux-x64",
-  "darwin-arm64": "repo-intel-darwin-arm64",
-  "darwin-x64": "repo-intel-darwin-x64",
-  "win32-x64": "repo-intel-win32-x64",
+  "linux-x64": "@ekaone/repo-intel-linux-x64",
+  "darwin-arm64": "@ekaone/repo-intel-darwin-arm64",
+  "darwin-x64": "@ekaone/repo-intel-darwin-x64",
+  "win32-x64": "@ekaone/repo-intel-win32-x64",
 };
 
 /** Binary filename — `.exe` on Windows, bare name everywhere else. */

@@ -1,5 +1,5 @@
 {
-  "name": "repo-intel",
+  "name": "@ekaone/repo-intel",
   "version": "0.1.0",
   "description": "Scan your repository and generate AI agent context files — powered by a Rust core",
   "keywords": [
@@ -55,10 +55,10 @@
     "openai": "^4.77.0"
   },
   "optionalDependencies": {
-    "repo-intel-darwin-arm64": "workspace:*",
-    "repo-intel-darwin-x64": "workspace:*",
-    "repo-intel-linux-x64": "workspace:*",
-    "repo-intel-win32-x64": "workspace:*"
+    "@ekaone/repo-intel-darwin-arm64": "workspace:*",
+    "@ekaone/repo-intel-darwin-x64": "workspace:*",
+    "@ekaone/repo-intel-linux-x64": "workspace:*",
+    "@ekaone/repo-intel-win32-x64": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^25.4.0",
