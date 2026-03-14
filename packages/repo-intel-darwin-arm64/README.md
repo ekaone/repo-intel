@@ -7,5 +7,5 @@ Platform binary for [macOS ARM64 (Apple Silicon)] — part of [@ekaone/repo-inte
 ## Install via the main package
 
 ```bash
-npm install -g @ekaone/repo-intel
+pnpm add -g @ekaone/repo-intel @ekaone/repo-intel-darwin-arm64
 ```

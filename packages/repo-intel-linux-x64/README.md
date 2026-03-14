@@ -7,5 +7,5 @@ Platform binary for [Linux x64] — part of [@ekaone/repo-intel](https://www.npm
 ## Install via the main package
 
 ```bash
-npm install -g @ekaone/repo-intel
+pnpm add -g @ekaone/repo-intel @ekaone/repo-intel-linux-x64
 ```

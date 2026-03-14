@@ -7,5 +7,5 @@ Platform binary for [Windows x64] — part of [@ekaone/repo-intel](https://www.n
 ## Install via the main package
 
 ```bash
-npm install -g @ekaone/repo-intel
+pnpm add -g @ekaone/repo-intel @ekaone/repo-intel-win32-x64
 ```

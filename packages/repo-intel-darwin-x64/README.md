@@ -7,5 +7,5 @@ Platform binary for [macOS x64 (Intel)] — part of [@ekaone/repo-intel](https:/
 ## Install via the main package
 
 ```bash
-npm install -g @ekaone/repo-intel
+pnpm add -g @ekaone/repo-intel @ekaone/repo-intel-darwin-x64
 ```
