@@ -3,13 +3,13 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 permissions:
   contents: write
 
 jobs:
-  build-and-publish-platform:
+  build-platform:
     name: Build ${{ matrix.npm-pkg }}
     runs-on: ${{ matrix.os }}
 
@@ -17,87 +17,89 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - target:   x86_64-unknown-linux-gnu
-            os:       ubuntu-latest
-            npm-pkg:  repo-intel-linux-x64
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            npm-pkg: repo-intel-linux-x64
             npm-name: "@ekaone/repo-intel-linux-x64"
-            binary:   repo-intel
+            binary: repo-intel
 
-          - target:   aarch64-apple-darwin
-            os:       macos-latest
-            npm-pkg:  repo-intel-darwin-arm64
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            npm-pkg: repo-intel-darwin-arm64
             npm-name: "@ekaone/repo-intel-darwin-arm64"
-            binary:   repo-intel
+            binary: repo-intel
 
-          - target:   x86_64-apple-darwin
-            os:       macos-latest
-            npm-pkg:  repo-intel-darwin-x64
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            npm-pkg: repo-intel-darwin-x64
             npm-name: "@ekaone/repo-intel-darwin-x64"
-            binary:   repo-intel
+            binary: repo-intel
 
-          - target:   x86_64-pc-windows-msvc
-            os:       windows-latest
-            npm-pkg:  repo-intel-win32-x64
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            npm-pkg: repo-intel-win32-x64
             npm-name: "@ekaone/repo-intel-win32-x64"
-            binary:   repo-intel.exe
+            binary: repo-intel.exe
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Rust toolchain
+      - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
 
-      - name: Cache cargo
+      - name: Cache Cargo registry
         uses: actions/cache@v4
         with:
           path: |
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
           key: cargo-${{ matrix.target }}-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            cargo-${{ matrix.target }}-
 
-      - name: Build release binary
+      - name: Build binary
         run: cargo build --release --target ${{ matrix.target }}
 
-      - name: Copy binary to platform package
+      - name: Windows filesystem wait
+        if: runner.os == 'Windows'
+        run: Start-Sleep -Seconds 2
+        shell: pwsh
+
+      - name: Copy binary to package
         shell: bash
         run: |
           mkdir -p packages/${{ matrix.npm-pkg }}/bin
-          cp target/${{ matrix.target }}/release/${{ matrix.binary }} \
-             packages/${{ matrix.npm-pkg }}/bin/${{ matrix.binary }}
-          echo "Binary size: $(du -sh packages/${{ matrix.npm-pkg }}/bin/${{ matrix.binary }})"
+          cp target/${{ matrix.target }}/release/${{ matrix.binary }} packages/${{ matrix.npm-pkg }}/bin/${{ matrix.binary }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 9
 
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org
 
-      - name: Publish ${{ matrix.npm-pkg }}
-        shell: bash
+      - name: Publish platform package
         working-directory: packages/${{ matrix.npm-pkg }}
-        run: |
-          npm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }}
-          npm view ${{ matrix.npm-name }}@$(node -p "require('./package.json').version") > /dev/null 2>&1 \
-            && echo "Already published, skipping" \
-            || pnpm publish --access public --no-git-checks
+        shell: bash
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view ${{ matrix.npm-name }}@$VERSION > /dev/null 2>&1; then
+            echo "Version already published, skipping"
+          else
+            pnpm publish --access public --no-git-checks
+          fi
 
   publish-main:
-    name: Publish @ekaone/repo-intel (main)
-    needs: build-and-publish-platform
+    name: Publish main package
+    needs: build-platform
     runs-on: ubuntu-latest
 
     steps:
@@ -109,28 +111,30 @@ jobs:
         with:
           version: 9
 
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org
 
-      - name: Install dependencies
+      - name: Install deps
         run: pnpm install --frozen-lockfile
 
       - name: Build TypeScript
         run: pnpm --filter @ekaone/repo-intel build
 
-      - name: Publish @ekaone/repo-intel
-        shell: bash
+      - name: Publish main package
         working-directory: packages/repo-intel
-        run: |
-          npm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }}
-          npm view @ekaone/repo-intel@$(node -p "require('./package.json').version") > /dev/null 2>&1 \
-            && echo "Already published, skipping" \
-            || pnpm publish --access public --no-git-checks
+        shell: bash
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view @ekaone/repo-intel@$VERSION > /dev/null 2>&1; then
+            echo "Version already published, skipping"
+          else
+            pnpm publish --access public --no-git-checks
+          fi
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
