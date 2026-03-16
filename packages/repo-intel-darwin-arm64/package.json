@@ -1,6 +1,6 @@
 {
   "name": "@ekaone/repo-intel-darwin-arm64",
-  "version": "0.1.5",
+  "version": "0.1.7",
   "description": "repo-intel binary for macOS ARM64 (Apple Silicon)",
   "license": "MIT",
   "repository": {

@@ -120,6 +120,21 @@ jobs:
       - name: Install deps
         run: pnpm install --frozen-lockfile
 
+      - name: Rewrite optionalDependencies to exact version
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require("fs");
+          const path = "packages/repo-intel/package.json";
+          const pkg = JSON.parse(fs.readFileSync(path, "utf8"));
+          const version = pkg.version;
+          for (const dep in pkg.optionalDependencies) {
+            pkg.optionalDependencies[dep] = version;
+          }
+          fs.writeFileSync(path, JSON.stringify(pkg, null, 2) + "\n");
+          console.log("optionalDependencies rewritten to", version);
+          NODE
+
       - name: Build TypeScript
         run: pnpm --filter @ekaone/repo-intel build
 
