@@ -71,35 +71,27 @@ The TypeScript layer handles the LLM call and file output.
 
 ## Installation
 
-repo-intel ships a platform-specific Rust binary. You must install **both** the main
-package and the binary package for your OS.
+repo-intel ships pre-compiled Rust binaries for all major platforms.
+The platform binary is installed automatically — no extra packages needed.
 
-> **Note:** `npx` will not work — it skips optional dependencies and the binary won't be found.
-> Always use a proper global install as shown below.
-
-### macOS (Apple Silicon)
+### Global install (recommended)
 
 ```bash
-pnpm add -g @ekaone/repo-intel @ekaone/repo-intel-darwin-arm64
+# pnpm
+pnpm add -g @ekaone/repo-intel
+
+# npm
+npm install -g @ekaone/repo-intel
 ```
 
-### macOS (Intel)
+### No install — run with npx
 
 ```bash
-pnpm add -g @ekaone/repo-intel @ekaone/repo-intel-darwin-x64
+npx @ekaone/repo-intel generate
 ```
 
-### Linux x64
-
-```bash
-pnpm add -g @ekaone/repo-intel @ekaone/repo-intel-linux-x64
-```
-
-### Windows x64
-
-```bash
-pnpm add -g @ekaone/repo-intel @ekaone/repo-intel-win32-x64
-```
+> The platform-specific binary (`win32-x64`, `darwin-arm64`, `linux-x64`, etc.)
+> is resolved automatically at runtime. No manual binary install required.
 
 ---
 
@@ -343,7 +335,8 @@ that's expected and unavoidable when generating rich, project-aware content.
 ## Platform Support
 
 repo-intel ships pre-compiled Rust binaries for all major platforms.
-No Rust toolchain required.
+No Rust toolchain required. The correct binary is resolved automatically
+at runtime based on your OS and CPU architecture.
 
 | Platform | Binary package |
 |---|---|
@@ -352,19 +345,37 @@ No Rust toolchain required.
 | Linux x64 | `@ekaone/repo-intel-linux-x64` |
 | Windows x64 | `@ekaone/repo-intel-win32-x64` |
 
-The binary package for your platform must be installed explicitly alongside the
-main package — see [Installation](#installation) above.
-
 ---
 
 ## Roadmap
 
 | Version | Focus |
 |---|---|
-| **v0.1.x** | CLI MVP — scan, detect, LLM generate, npm publish |
-| **v0.2.0** | Incremental cache, rayon parallel, watch mode, YAML output |
-| **v0.2.x** | `repo-intel-sdk` — programmatic SDK package |
-| **v0.3.0** | `repo-intel-native` — napi-rs bridge for maximum performance |
+| **v0.1.x** | CLI MVP — scan, detect, LLM generate, cross-platform npm publish, `npx` support |
+| **v0.2.0** | Incremental cache, rayon parallel scanning, watch mode, YAML output, `--force` flag |
+| **v0.2.x** | `repo-intel-sdk` — programmatic SDK package, deep source file scanning |
+| **v0.3.0** | `repo-intel-native` — napi-rs bridge, single-package install, maximum performance |
+
+**v0.1.x highlights (shipped):**
+- Rust core scans 10,000 files in under 200ms
+- Three-layer confidence scoring for stack detection
+- AI agent doc generation via Anthropic, OpenAI, and Ollama
+- Cross-platform binaries for macOS, Linux, and Windows
+- Single package install — platform binary resolved automatically
+- `npx` support with no manual binary install
+
+**v0.2.0 planned:**
+- Incremental cache — skip re-scanning unchanged files
+- Rayon parallel processing — multi-core Rust scanning
+- Watch mode — auto-regenerate docs on file changes
+- YAML output format alongside JSON
+- `--force` flag — skip overwrite prompt on re-generation
+- Deep source file scanning — read actual `.ts`/`.rs` files for richer context
+
+**v0.3.0 planned:**
+- napi-rs bridge — in-process Rust↔Node.js, zero spawn overhead
+- Single package install with bundled binaries
+- `repo-intel-native` — drop-in replacement with identical API
 
 See [docs/ROADMAP.md](./docs/ROADMAP.md) for the full plan.
 
