@@ -29,8 +29,19 @@
   of `TypeScript`. Fix: weight `package.json` language detection higher than file pattern inference.
 - Project name returns `"unknown"` when root directory has no `package.json` (e.g. monorepos).
   Fix: search one level deep for a `package.json` as fallback.
+- Hidden directory detection broken — `.github/`, `.git/`, `.packages/` are skipped during
+  walk, causing `has_ci`, `has_git`, and `has_monorepo` to return false incorrectly.
+  Fix: explicitly check named hidden dirs for signal detection separately from the walk filter.
+- Folder list polluted by test/docs/fixture directories — scanner walks into `test/`,
+  `examples/`, `docs/`, `bench/`, `turbopack/` etc. collecting thousands of irrelevant nested
+  folder names (numbered fixtures, Next.js route interception patterns like `(.)page`, `01-components`).
+  Fix: expand `SKIP_DIRS` to exclude non-application directories.
+- URL-encoded folder names — folder names with underscores are stored as `%5F` instead of `_`.
+  Fix: store raw folder names in `walker.rs`.
 - Rust unit tests deleted — 65 tests across scanner, detector, and context builder
   must be restored before v0.2.0 development begins.
+
+**New features:**
 - Incremental cache system (< 5ms on cache hit)
 - Rayon parallel file analysis (4–8x faster on large repos)
 - Git diff detection — skip re-generating unchanged agent roles
@@ -45,7 +56,13 @@
   - `package.json` script patterns
   - Export signatures from entry files
   - Git history signals (recently active files)
-- Restore Rust unit tests (65 tests across scanner, detector, context builder)
+- Agent Skills output mode — add `--format skills` flag to generate spec-compliant `SKILL.md`
+  files (YAML frontmatter + instructions) compatible with Claude Code, Cursor, GitHub Copilot,
+  and other agentskills.io-compatible tools
+- Dual output modes — `--format persona` (current default, rich identity/personality docs) and
+  `--format skills` (agentskills.io standard, task-focused capability packages)
+- Prompt Builder customization — allow users to override section templates via `.repo-intel.toml`
+  for custom agent personas, tone, and output structure
 
 ---
 
