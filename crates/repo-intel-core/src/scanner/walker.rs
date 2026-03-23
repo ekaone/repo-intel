@@ -193,6 +193,7 @@ fn is_skip_dir(entry: &walkdir::DirEntry) -> bool {
 /// Catches patterns that can't be enumerated statically:
 /// - Numbered dirs:              "01-components", "2-api", "03_utils"
 /// - Next.js route interception: "(.)page", "(..)slot", "(auth)"
+/// - Next.js dynamic segments:   "[slug]", "[id]", "[...params]"
 /// - Single-char dirs:           "e", "x", "a"
 fn is_noisy_dir_name(name: &str) -> bool {
     // Single character — never a meaningful application folder
@@ -208,6 +209,12 @@ fn is_noisy_dir_name(name: &str) -> bool {
     // Starts with '(' — Next.js route groups / interception patterns
     // e.g. "(auth)", "(.)photo", "(..)feed"
     if name.starts_with('(') {
+        return true;
+    }
+
+    // Starts with '[' — Next.js dynamic route segments
+    // e.g. "[slug]", "[id]", "[...params]"
+    if name.starts_with('[') {
         return true;
     }
 
@@ -542,6 +549,14 @@ mod tests {
         assert!(is_noisy_dir_name("(.)photo"));
         assert!(is_noisy_dir_name("(..)feed"));
         assert!(is_noisy_dir_name("(marketing)"));
+    }
+
+    #[test]
+    fn noisy_name_nextjs_dynamic_segments() {
+        assert!(is_noisy_dir_name("[slug]"));
+        assert!(is_noisy_dir_name("[id]"));
+        assert!(is_noisy_dir_name("[...params]"));
+        assert!(is_noisy_dir_name("[userId]"));
     }
 
     #[test]

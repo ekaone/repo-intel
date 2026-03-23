@@ -230,7 +230,14 @@ fn detect_monorepo(
 
 /// Return a sorted, deduplicated list of meaningful top-level folder names.
 /// Filters out noisy or generated folder names to keep the prompt clean.
+///
+/// Only folders within `MAX_FOLDER_DEPTH` levels of the root are included —
+/// this prevents deeply nested monorepo package internals from polluting the list.
 fn collect_top_folders(folder_map: &FolderMap) -> Vec<String> {
+    /// Maximum folder name length before we consider it noise.
+    /// Real application folders are rarely longer than 32 chars.
+    const MAX_NAME_LEN: usize = 32;
+
     const SKIP: &[&str] = &[
         "node_modules",
         ".git",
@@ -253,7 +260,30 @@ fn collect_top_folders(folder_map: &FolderMap) -> Vec<String> {
 
     let mut folders: Vec<String> = folder_map
         .keys()
-        .filter(|name| !SKIP.contains(&name.as_str()) && !name.starts_with('.'))
+        .filter(|name| {
+            // Skip known noise dirs
+            if SKIP.contains(&name.as_str()) {
+                return false;
+            }
+            // Skip dot-prefixed hidden dirs
+            if name.starts_with('.') {
+                return false;
+            }
+            // Skip dynamic route segments: [slug], [...params]
+            if name.starts_with('[') {
+                return false;
+            }
+            // Skip Next.js route groups: (auth), (.)photo
+            if name.starts_with('(') {
+                return false;
+            }
+            // Skip very long names — deeply nested package internals
+            // e.g. "react-server-dom-webpack-experimental"
+            if name.len() > MAX_NAME_LEN {
+                return false;
+            }
+            true
+        })
         .cloned()
         .collect();
 
