@@ -86,35 +86,70 @@ fn merge_skills(layers: Vec<Vec<Skill>>) -> Vec<Skill> {
 
 // ── Top-level field inference ─────────────────────────────────────────────────
 
-fn infer_language(skills: &[Skill], internal: &[Skill]) -> String {
-    // Internal __project_name markers tell us the primary language via file presence
-    // First check explicit language skills
-    let candidates = [
-        ("Rust", "Rust"),
-        ("Python", "Python"),
-        ("Go", "Go"),
-        ("Java", "Java"),
-        ("C#", "C#"),
-        ("Ruby", "Ruby"),
-        ("TypeScript", "TypeScript"),
-    ];
+fn infer_language(skills: &[Skill], _internal: &[Skill]) -> String {
+    // Collect which primary languages are present and where they came from.
+    // Source matters: package_json is a stronger JS/TS signal than cargo_toml
+    // is for Rust when both exist (monorepo case).
+    let has_ts = skills.iter().any(|s| {
+        s.name.contains("TypeScript") && s.confidence >= PRIMARY_THRESHOLD
+    });
+    let has_rust = skills.iter().any(|s| {
+        s.name.contains("Rust") && s.confidence >= PRIMARY_THRESHOLD
+    });
+    let has_python = skills.iter().any(|s| {
+        s.name.contains("Python") && s.confidence >= PRIMARY_THRESHOLD
+    });
+    let has_go = skills.iter().any(|s| {
+        s.name.contains("Go") && s.confidence >= PRIMARY_THRESHOLD
+    });
+    let has_java = skills.iter().any(|s| {
+        s.name.contains("Java") && s.confidence >= PRIMARY_THRESHOLD
+    });
 
-    for (skill_needle, lang) in &candidates {
-        if skills
-            .iter()
-            .any(|s| s.name.contains(skill_needle) && s.confidence >= PRIMARY_THRESHOLD)
-        {
-            return lang.to_string();
+    // Check if TypeScript is sourced from package_json — strongest possible signal
+    let ts_from_pkg = skills.iter().any(|s| {
+        s.name.contains("TypeScript")
+            && s.confidence >= PRIMARY_THRESHOLD
+            && matches!(s.source, crate::types::SkillSource::PackageJson)
+    });
+
+    // ── Monorepo: TypeScript + Rust ───────────────────────────────────────────
+    // When both are present, TypeScript wins as the primary label if it comes
+    // from package_json (the JS/TS layer is what users interact with).
+    // Rust is surfaced as a qualifier: "TypeScript + Rust".
+    if has_ts && has_rust {
+        if ts_from_pkg {
+            return "TypeScript + Rust".to_string();
         }
+        // Rust-first monorepo (rare — Rust pkg with a small TS utility)
+        return "Rust + TypeScript".to_string();
     }
 
-    // Fallback: if we have any TypeScript skill at all
+    // ── Single-language fast paths ────────────────────────────────────────────
+    if has_ts {
+        return "TypeScript".to_string();
+    }
+    if has_rust {
+        return "Rust".to_string();
+    }
+    if has_python {
+        return "Python".to_string();
+    }
+    if has_go {
+        return "Go".to_string();
+    }
+    if has_java {
+        return "Java".to_string();
+    }
+
+    // ── Sub-threshold fallback ────────────────────────────────────────────────
+    // TypeScript skill present but below PRIMARY_THRESHOLD — still call it TS
     if skills.iter().any(|s| s.name.contains("TypeScript")) {
         return "TypeScript".to_string();
     }
-
-    // Check internal markers for Cargo.toml presence
-    let _ = internal; // internal markers are checked upstream in deps.rs
+    if skills.iter().any(|s| s.name.contains("Rust")) {
+        return "Rust".to_string();
+    }
 
     "Unknown".to_string()
 }
@@ -239,7 +274,11 @@ fn infer_database(skills: &[Skill]) -> Option<String> {
 
 fn infer_runtime(skills: &[Skill], language: &str) -> Option<String> {
     match language {
+        // Pure Rust — no JS runtime
         "Rust" => Some("Rust (native)".to_string()),
+        // Monorepo: TS layer is the user-facing runtime
+        "TypeScript + Rust" => Some("Node.js + Rust (native)".to_string()),
+        "Rust + TypeScript" => Some("Rust (native) + Node.js".to_string()),
         "Go" => Some("Go runtime".to_string()),
         "Python" => Some("CPython".to_string()),
         _ => {
@@ -361,12 +400,56 @@ mod tests {
     }
 
     #[test]
-    fn no_skills_below_threshold_in_output() {
-        let scan = make_scan(r#"{"dependencies":{}}"#, &[], &[]);
+    fn monorepo_ts_rust_prefers_typescript_when_pkg_json_present() {
+        // repo-intel itself: has both package.json (TS) and Cargo.toml (Rust)
+        let pkg_signal = SignalFile {
+            kind: SignalKind::PackageJson,
+            path: PathBuf::from("package.json"),
+            content: r#"{"dependencies":{},"devDependencies":{"typescript":"5","vitest":"1"}}"#
+                .to_string(),
+        };
+        let cargo_signal = SignalFile {
+            kind: SignalKind::CargoToml,
+            path: PathBuf::from("Cargo.toml"),
+            content: "[package]\nname = \"repo-intel-core\"\n[dependencies]\n".to_string(),
+        };
+
+        let scan = ScanResult {
+            root: PathBuf::from("."),
+            signal_files: vec![pkg_signal, cargo_signal],
+            folder_map: HashMap::new(),
+            file_patterns: vec![".ts".to_string(), ".rs".to_string()],
+            readme_excerpt: None,
+        };
+
         let stack = detect(&scan).unwrap();
-        assert!(stack
-            .skills
-            .iter()
-            .all(|s| s.confidence >= INCLUDE_THRESHOLD));
+        assert_eq!(stack.language, "TypeScript + Rust");
+        assert!(stack.runtime.as_deref().unwrap().contains("Node.js"));
+    }
+
+    #[test]
+    fn pure_rust_repo_still_detects_rust() {
+        let cargo = r#"
+            [package]
+            name = "my-api"
+            [dependencies]
+            axum = "0.7"
+        "#;
+        let signal = SignalFile {
+            kind: SignalKind::CargoToml,
+            path: PathBuf::from("Cargo.toml"),
+            content: cargo.to_string(),
+        };
+        let scan = ScanResult {
+            root: PathBuf::from("."),
+            signal_files: vec![signal],
+            folder_map: HashMap::new(),
+            file_patterns: vec![".rs".to_string()],
+            readme_excerpt: None,
+        };
+
+        let stack = detect(&scan).unwrap();
+        assert_eq!(stack.language, "Rust");
+        assert_eq!(stack.runtime.as_deref(), Some("Rust (native)"));
     }
 }

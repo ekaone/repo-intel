@@ -16,14 +16,18 @@ pub fn enrich(
     skills: &[Skill],
     arch_style: Option<ArchStyle>,
 ) -> (ProjectMeta, ArchMeta) {
-    let project = build_project_meta(signal_files, readme_excerpt);
+    let project = build_project_meta(root, signal_files, readme_excerpt);
     let arch = build_arch_meta(root, signal_files, folder_map, skills, arch_style);
     (project, arch)
 }
 
 // ── ProjectMeta ───────────────────────────────────────────────────────────────
 
-fn build_project_meta(signal_files: &[SignalFile], readme_excerpt: Option<String>) -> ProjectMeta {
+fn build_project_meta(
+    root: &Path,
+    signal_files: &[SignalFile],
+    readme_excerpt: Option<String>,
+) -> ProjectMeta {
     let mut name = "unknown".to_string();
     let mut description: Option<String> = None;
 
@@ -76,6 +80,17 @@ fn build_project_meta(signal_files: &[SignalFile], readme_excerpt: Option<String
                 }
             }
             _ => {}
+        }
+    }
+
+    // ── Fallback: derive name from the root directory name ────────────────────
+    // Covers monorepos that have no root-level package.json / Cargo.toml —
+    // e.g. a Turborepo or Nx workspace where the root manifest has no `name`.
+    if name == "unknown" {
+        if let Some(dir_name) = root.file_name().and_then(|n| n.to_str()) {
+            if !dir_name.is_empty() {
+                name = dir_name.to_string();
+            }
         }
     }
 
@@ -350,9 +365,45 @@ mod tests {
             content: r#"{"name":"my-dashboard","description":"IoT monitoring tool"}"#.to_string(),
         };
 
-        let meta = build_project_meta(&[signal], None);
+        let meta = build_project_meta(Path::new("/projects/my-dashboard"), &[signal], None);
         assert_eq!(meta.name, "my-dashboard");
         assert_eq!(meta.description.as_deref(), Some("IoT monitoring tool"));
+    }
+
+    #[test]
+    fn project_meta_falls_back_to_dir_name_when_no_signals() {
+        let dir = TempDir::new().unwrap();
+        // No package.json or Cargo.toml — pure monorepo root
+        let meta = build_project_meta(dir.path(), &[], None);
+        // TempDir names are random but never empty
+        assert_ne!(meta.name, "unknown");
+        assert!(!meta.name.is_empty());
+    }
+
+    #[test]
+    fn project_meta_dir_name_fallback_uses_last_component() {
+        use std::path::PathBuf;
+        // Simulate a path like /home/user/projects/my-monorepo
+        let fake_root = PathBuf::from("/home/user/projects/my-monorepo");
+        let meta = build_project_meta(&fake_root, &[], None);
+        assert_eq!(meta.name, "my-monorepo");
+    }
+
+    #[test]
+    fn project_meta_signal_name_wins_over_dir_name() {
+        use crate::types::SignalKind;
+        use std::path::PathBuf;
+
+        let signal = SignalFile {
+            kind: SignalKind::PackageJson,
+            path: PathBuf::from("package.json"),
+            content: r#"{"name":"explicit-name"}"#.to_string(),
+        };
+
+        // Dir name is different — signal should win
+        let fake_root = PathBuf::from("/projects/dir-name");
+        let meta = build_project_meta(&fake_root, &[signal], None);
+        assert_eq!(meta.name, "explicit-name");
     }
 
     #[test]
@@ -366,7 +417,8 @@ mod tests {
             content: "[package]\nname = \"repo-intel\"\ndescription = \"A CLI tool\"\nversion = \"0.1.0\"".to_string(),
         };
 
-        let meta = build_project_meta(&[signal], None);
+        let fake_root = PathBuf::from("/projects/repo-intel");
+        let meta = build_project_meta(&fake_root, &[signal], None);
         assert_eq!(meta.name, "repo-intel");
         assert_eq!(meta.description.as_deref(), Some("A CLI tool"));
     }

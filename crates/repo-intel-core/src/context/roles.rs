@@ -98,7 +98,7 @@ pub fn map_roles(stack: &StackResult, arch: &ArchMeta) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::{ArchStyle, Skill, SkillSource, StackResult};
+    use crate::types::{Skill, SkillSource, StackResult};
 
     fn make_stack(skill_names: &[(&str, f32)]) -> StackResult {
         StackResult {
