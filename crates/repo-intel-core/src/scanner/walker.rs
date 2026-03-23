@@ -442,7 +442,15 @@ mod tests {
 
         let (folder_map, _) = walk(dir.path(), DEPTH_CAP);
 
-        for expected in &["src", "components", "hooks", "services", "lib", "app", "packages"] {
+        for expected in &[
+            "src",
+            "components",
+            "hooks",
+            "services",
+            "lib",
+            "app",
+            "packages",
+        ] {
             assert!(
                 folder_map.contains_key(*expected),
                 "expected '{}' in folder_map",

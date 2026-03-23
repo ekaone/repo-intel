@@ -90,21 +90,21 @@ fn infer_language(skills: &[Skill], _internal: &[Skill]) -> String {
     // Collect which primary languages are present and where they came from.
     // Source matters: package_json is a stronger JS/TS signal than cargo_toml
     // is for Rust when both exist (monorepo case).
-    let has_ts = skills.iter().any(|s| {
-        s.name.contains("TypeScript") && s.confidence >= PRIMARY_THRESHOLD
-    });
-    let has_rust = skills.iter().any(|s| {
-        s.name.contains("Rust") && s.confidence >= PRIMARY_THRESHOLD
-    });
-    let has_python = skills.iter().any(|s| {
-        s.name.contains("Python") && s.confidence >= PRIMARY_THRESHOLD
-    });
-    let has_go = skills.iter().any(|s| {
-        s.name.contains("Go") && s.confidence >= PRIMARY_THRESHOLD
-    });
-    let has_java = skills.iter().any(|s| {
-        s.name.contains("Java") && s.confidence >= PRIMARY_THRESHOLD
-    });
+    let has_ts = skills
+        .iter()
+        .any(|s| s.name.contains("TypeScript") && s.confidence >= PRIMARY_THRESHOLD);
+    let has_rust = skills
+        .iter()
+        .any(|s| s.name.contains("Rust") && s.confidence >= PRIMARY_THRESHOLD);
+    let has_python = skills
+        .iter()
+        .any(|s| s.name.contains("Python") && s.confidence >= PRIMARY_THRESHOLD);
+    let has_go = skills
+        .iter()
+        .any(|s| s.name.contains("Go") && s.confidence >= PRIMARY_THRESHOLD);
+    let has_java = skills
+        .iter()
+        .any(|s| s.name.contains("Java") && s.confidence >= PRIMARY_THRESHOLD);
 
     // Check if TypeScript is sourced from package_json — strongest possible signal
     let ts_from_pkg = skills.iter().any(|s| {
