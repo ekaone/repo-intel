@@ -1,6 +1,6 @@
 {
   "name": "@ekaone/repo-intel",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Scan your repository and generate AI agent context files — powered by a Rust core",
   "keywords": [
     "ai",
