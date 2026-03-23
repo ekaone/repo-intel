@@ -21,25 +21,26 @@
 ---
 
 ## v0.2.0 — Speed + Incremental Intelligence
-> Status: Planned
+> Status: In Progress 🔧
 
-**Known issues from v0.1.x to fix first:**
-- Language detection incorrect on monorepos — file pattern signals (e.g. `.rs` files)
-  override `package.json` language. Example: `next.js` repo detected as `Rust` instead
-  of `TypeScript`. Fix: weight `package.json` language detection higher than file pattern inference.
-- Project name returns `"unknown"` when root directory has no `package.json` (e.g. monorepos).
-  Fix: search one level deep for a `package.json` as fallback.
-- Hidden directory detection broken — `.github/`, `.git/`, `.packages/` are skipped during
-  walk, causing `has_ci`, `has_git`, and `has_monorepo` to return false incorrectly.
-  Fix: explicitly check named hidden dirs for signal detection separately from the walk filter.
-- Folder list polluted by test/docs/fixture directories — scanner walks into `test/`,
-  `examples/`, `docs/`, `bench/`, `turbopack/` etc. collecting thousands of irrelevant nested
-  folder names (numbered fixtures, Next.js route interception patterns like `(.)page`, `01-components`).
-  Fix: expand `SKIP_DIRS` to exclude non-application directories.
-- URL-encoded folder names — folder names with underscores are stored as `%5F` instead of `_`.
-  Fix: store raw folder names in `walker.rs`.
-- Rust unit tests deleted — 65 tests across scanner, detector, and context builder
-  must be restored before v0.2.0 development begins.
+**Bug fixes shipped in v0.1.10 ✅:**
+- Language detection incorrect on monorepos — fixed: `package_json` source now wins over
+  `cargo_toml`; monorepos correctly detected as `TypeScript + Rust` with `Node.js + Rust (native)` runtime.
+- Project name returns `"unknown"` — fixed: falls back to root directory name when no
+  `package.json` / `Cargo.toml` is present.
+- Hidden directory detection broken — fixed: `probe_hidden_signals()` performs shallow
+  `is_dir()` checks on `.git/`, `.github/workflows/` outside the main walk.
+- Folder list polluted by test/docs/fixture directories — fixed: `SKIP_DIRS` expanded
+  (docs, examples, bench, tests, workflows etc.); `is_noisy_dir_name()` filters numbered
+  dirs (`01-components`), Next.js route interception (`(.)page`), and single-char dirs.
+- URL-encoded folder names (`%5F`) — cannot reproduce on current path; monitoring.
+- Rust unit tests restored — 83 tests passing (was 65).
+
+**Remaining folder pollution (v0.2.0):**
+- Next.js dynamic route segments — `[slug]/`, `[id]/`, `[...params]/` still appear in
+  folder list. Fix: add `starts_with('[')` guard to `is_noisy_dir_name()` in `walker.rs`.
+- Deep monorepo folder pollution — extremely large monorepos (e.g. next.js itself) expose
+  deeply nested package internals. Fix: depth cap on `collect_top_folders` in `enricher.rs`.
 
 **New features:**
 - Incremental cache system (< 5ms on cache hit)
@@ -92,11 +93,11 @@
 
 ## Package Evolution
 
-| Version | Packages | Install |
-|---|---|---|
-| v0.1.x | `@ekaone/repo-intel` | `pnpm add -g @ekaone/repo-intel` |
-| v0.2.x | + `@ekaone/repo-intel-sdk` | `pnpm add @ekaone/repo-intel-sdk` |
-| v0.3.0 | + `@ekaone/repo-intel-native` | `pnpm add @ekaone/repo-intel-native` |
+| Version | Packages | Install | Status |
+|---|---|---|---|
+| v0.1.x → v0.1.10 | `@ekaone/repo-intel` | `pnpm add -g @ekaone/repo-intel` | ✅ Shipped |
+| v0.2.x | + `@ekaone/repo-intel-sdk` | `pnpm add @ekaone/repo-intel-sdk` | 🔧 Planned |
+| v0.3.0 | + `@ekaone/repo-intel-native` | `pnpm add @ekaone/repo-intel-native` | 🔮 Future |
 
 ---
 
